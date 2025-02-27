@@ -88,11 +88,11 @@ try {
     ];
 
     // Fetch monsters spawning in this location
-    $monsterQuery = "SELECT DISTINCT n.npcid, n.desc_en, n.hp, n.mp, n.exp 
-                     FROM spawnlist s
-                     JOIN npc n ON s.npcid = n.npcid
-                     WHERE s.mapid = ?
-                     LIMIT 50";
+		$monsterQuery = "SELECT DISTINCT n.npcid, n.desc_en, n.hp, n.mp, n.exp 
+                 FROM spawnlist s
+                 JOIN npc n ON s.npc_templateid = n.npcid
+                 WHERE s.mapid = ?
+                 LIMIT 50";
     $monsterStmt = $conn->prepare($monsterQuery);
     $monsterStmt->bind_param("i", $mapId);
     $monsterStmt->execute();

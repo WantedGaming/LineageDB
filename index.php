@@ -242,14 +242,14 @@ include 'header.php';
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-book me-2"></i>Magical Artifacts
+                    <h5 class="mb-0" style="color: var(--accent-color);>
+                        <i class="bi bi-book me-2"></i>Magical
                     </h5>
                 </div>
                 <div class="list-group list-group-flush">
                     <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                         <span>
-                            <i class="bi bi-journal me-2"></i>Scrolls
+                            <i class="bi bi-journal me-2"></i>Polymorphs
                         </span>
                         <span class="badge bg-secondary rounded-pill">Coming Soon</span>
                     </a>
@@ -280,8 +280,8 @@ include 'header.php';
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-heart-pulse me-2"></i>Recovery Items
+                    <h5 class="mb-0" style="color: var(--accent-color);>
+                        <i class="bi bi-heart-pulse me-2"></i>Consumeables
                     </h5>
                 </div>
                 <div class="list-group list-group-flush">
@@ -292,19 +292,19 @@ include 'header.php';
                         <span class="badge bg-secondary rounded-pill">Coming Soon</span>
                     </a>
                     <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"><span>
-                            <i class="bi bi-egg-fried me-2"></i>Food
+                            <i class="bi bi-egg-fried me-2"></i>Scrolls
                         </span>
                         <span class="badge bg-secondary rounded-pill">Coming Soon</span>
                     </a>
                     <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                         <span>
-                            <i class="bi bi-arrow-up-right me-2"></i>Arrows
+                            <i class="bi bi-arrow-up-right me-2"></i>Food
                         </span>
                         <span class="badge bg-secondary rounded-pill">Coming Soon</span>
                     </a>
                     <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                         <span>
-                            <i class="bi bi-magic me-2"></i>Polymorphs
+                            <i class="bi bi-magic me-2"></i>Arrows
                         </span>
                         <span class="badge bg-primary rounded-pill">
                             <?php echo getSafeCount($conn, 'polymorphs'); ?>
@@ -317,8 +317,8 @@ include 'header.php';
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-stars me-2"></i>Valuables & Rarities
+                    <h5 class="mb-0" style="color: var(--accent-color);>
+                        <i class="bi bi-stars me-2"></i>Valuables
                     </h5>
                 </div>
                 <div class="list-group list-group-flush">
@@ -350,7 +350,7 @@ include 'header.php';
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">
+                    <h5 class="mb-0" style="color: var(--accent-color);>
                         <i class="bi bi-trophy me-2"></i>Adventure Items
                     </h5>
                 </div>
@@ -380,8 +380,8 @@ include 'header.php';
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-calendar-event me-2"></i>Seasonal & Special
+                    <h5 class="mb-0" style="color: var(--accent-color);>
+                        <i class="bi bi-calendar-event me-2"></i>Rarities
                     </h5>
                 </div>
                 <div class="list-group list-group-flush">
