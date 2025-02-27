@@ -183,7 +183,7 @@ include 'header.php';
                     </div>
                     <h4 class="card-title mb-3">Locations</h4>
                     <p class="card-text mb-4">Discover all game locations including towns, fields, and special areas.</p>
-                    <a href="#" class="btn btn-info d-flex justify-content-between align-items-center">
+                    <a href="locations_list.php" class="btn btn-info d-flex justify-content-between align-items-center">
                         <span>View Locations</span>
                         <span class="badge bg-light text-info rounded-pill ms-2">
                             <?php echo getSafeCount($conn, 'mapids'); ?>
