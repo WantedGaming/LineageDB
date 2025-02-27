@@ -249,10 +249,17 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             <i class="bi bi-grid me-1"></i>Armor List
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?php echo ($current_page == 'add_armor.php') ? 'active' : ''; ?>" href="add_armor.php">
-                            <i class="bi bi-plus-circle me-1"></i>Add New
+                    <!-- Change the "Add New" link to a dropdown menu -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle <?php echo ($current_page == 'add_armor.php' || $current_page == 'add_weapon.php') ? 'active' : ''; ?>" href="#" id="addDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-plus-circle me-1"></i>Add
                         </a>
+                        <ul class="dropdown-menu" aria-labelledby="addDropdown">
+                            <li><a class="dropdown-item" href="add_armor.php">Armor</a></li>
+                            <li><a class="dropdown-item" href="add_weapon.php">Weapon</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="add_accessory.php">Accessory</a></li>
+                        </ul>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="statsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
