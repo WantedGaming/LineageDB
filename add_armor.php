@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         // Bind parameters
         $stmt->bind_param(
-            "isssssisissiiiiiiiiiiiiiiiiiiiiiiiiis", 
+            "isssssisissiiiiiiiiiiiiiiiiiiiiiiis", 
             $item_id, $item_name_id, $desc_en, $desc_kr, $itemGrade, $type, 
             $grade, $material, $weight, $ac, $safenchant, $iconId,
             $use_royal, $use_knight, $use_mage, $use_elf, $use_darkelf,
@@ -143,53 +143,284 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New Armor Item</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container mt-4">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="index.php">Armor List</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Add New Armor</li>
-            </ol>
-        </nav>
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="armor_list.php">Armor List</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Add New Armor</li>
+        </ol>
+    </nav>
 
-        <div class="card">
-            <div class="card-header">
-                <h2>Add New Armor Item</h2>
-            </div>
-            <div class="card-body">
-                <?php 
-                // Display error and success messages
-                displayErrorMessages(); 
-                displaySuccessMessages();
-                ?>
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="bi bi-shield-fill me-2"></i>Add New Armor Item</h2>
+        </div>
+        <div class="card-body">
+            <?php 
+            // Display error and success messages
+            displayErrorMessages(); 
+            displaySuccessMessages();
+            ?>
 
-                <form method="post" action="" enctype="multipart/form-data">
-                    <input type="hidden" name="item_id" value="<?php echo $nextId; ?>">
-                    
-                    <!-- Form content remains the same as the original add_armor.php -->
-                    <!-- Include your original form fields here -->
-                    <div class="d-flex justify-content-between">
-                        <a href="index.php" class="btn btn-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-primary">Add Armor Item</button>
+            <form method="post" action="" enctype="multipart/form-data">
+                <input type="hidden" name="item_id" value="<?php echo $nextId; ?>">
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h4>Basic Information</h4>
+                        <div class="mb-3">
+                            <label for="item_name_id" class="form-label">Item Name ID</label>
+                            <input type="text" class="form-control" id="item_name_id" name="item_name_id" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="desc_en" class="form-label">Description (EN)</label>
+                            <input type="text" class="form-control" id="desc_en" name="desc_en" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="desc_kr" class="form-label">Description (KR)</label>
+                            <input type="text" class="form-control" id="desc_kr" name="desc_kr">
+                        </div>
+                        <div class="mb-3">
+                            <label for="itemGrade" class="form-label">Item Grade</label>
+                            <select class="form-select" id="itemGrade" name="itemGrade" required>
+                                <option value="NORMAL">NORMAL</option>
+                                <option value="ADVANC">ADVANC</option>
+                                <option value="RARE">RARE</option>
+                                <option value="HERO">HERO</option>
+                                <option value="LEGEND">LEGEND</option>
+                                <option value="MYTH">MYTH</option>
+                                <option value="ONLY">ONLY</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="type" class="form-label">Type</label>
+                            <select class="form-select" id="type" name="type" required>
+                                <option value="NONE">NONE</option>
+                                <option value="HELMET">HELMET</option>
+                                <option value="ARMOR">ARMOR</option>
+                                <option value="T_SHIRT">T_SHIRT</option>
+                                <option value="CLOAK">CLOAK</option>
+                                <option value="GLOVE">GLOVE</option>
+                                <option value="BOOTS">BOOTS</option>
+                                <option value="SHIELD">SHIELD</option>
+                                <option value="AMULET">AMULET</option>
+                                <option value="RING">RING</option>
+                                <option value="BELT">BELT</option>
+                                <option value="RING_2">RING_2</option>
+                                <option value="EARRING">EARRING</option>
+                                <option value="GARDER">GARDER</option>
+                                <option value="PENDANT">PENDANT</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="material" class="form-label">Material</label>
+                            <select class="form-select" id="material" name="material" required>
+                                <option value="NONE(-)">NONE(-)</option>
+                                <option value="CLOTH(천)">CLOTH(천)</option>
+                                <option value="LEATHER(가죽)">LEATHER(가죽)</option>
+                                <option value="IRON(철)">IRON(철)</option>
+                                <option value="METAL(금속)">METAL(금속)</option>
+                            </select>
+                        </div>
                     </div>
-                </form>
-            </div>
+                    
+                    <div class="col-md-6">
+                        <h4>Armor Properties</h4>
+                        <div class="mb-3">
+                            <label for="grade" class="form-label">Level</label>
+                            <input type="number" class="form-control" id="grade" name="grade" value="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="weight" class="form-label">Weight</label>
+                            <input type="number" class="form-control" id="weight" name="weight" value="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ac" class="form-label">AC</label>
+                            <input type="number" class="form-control" id="ac" name="ac" value="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="safenchant" class="form-label">Safe Enchant</label>
+                            <input type="number" class="form-control" id="safenchant" name="safenchant" value="0" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <h4>Class Restrictions</h4>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="use_royal" name="use_royal">
+                                    <label class="form-check-label" for="use_royal">Royal</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="use_knight" name="use_knight">
+                                    <label class="form-check-label" for="use_knight">Knight</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="use_mage" name="use_mage">
+                                    <label class="form-check-label" for="use_mage">Mage</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="use_elf" name="use_elf">
+                                    <label class="form-check-label" for="use_elf">Elf</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="use_darkelf" name="use_darkelf">
+                                    <label class="form-check-label" for="use_darkelf">Dark Elf</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="use_dragonknight" name="use_dragonknight">
+                                    <label class="form-check-label" for="use_dragonknight">Dragon Knight</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="use_illusionist" name="use_illusionist">
+                                    <label class="form-check-label" for="use_illusionist">Illusionist</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="use_warrior" name="use_warrior">
+                                    <label class="form-check-label" for="use_warrior">Warrior</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="use_fencer" name="use_fencer">
+                                    <label class="form-check-label" for="use_fencer">Fencer</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="use_lancer" name="use_lancer">
+                                    <label class="form-check-label" for="use_lancer">Lancer</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <h4>Stat Bonuses</h4>
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="add_str" class="form-label">STR</label>
+                                    <input type="number" class="form-control" id="add_str" name="add_str" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="add_dex" class="form-label">DEX</label>
+                                    <input type="number" class="form-control" id="add_dex" name="add_dex" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="add_con" class="form-label">CON</label>
+                                    <input type="number" class="form-control" id="add_con" name="add_con" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="add_int" class="form-label">INT</label>
+                                    <input type="number" class="form-control" id="add_int" name="add_int" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="add_wis" class="form-label">WIS</label>
+                                    <input type="number" class="form-control" id="add_wis" name="add_wis" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="add_cha" class="form-label">CHA</label>
+                                    <input type="number" class="form-control" id="add_cha" name="add_cha" value="0">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="add_hp" class="form-label">HP</label>
+                                    <input type="number" class="form-control" id="add_hp" name="add_hp" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="add_mp" class="form-label">MP</label>
+                                    <input type="number" class="form-control" id="add_mp" name="add_mp" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="add_hpr" class="form-label">HP Regen</label>
+                                    <input type="number" class="form-control" id="add_hpr" name="add_hpr" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="add_mpr" class="form-label">MP Regen</label>
+                                    <input type="number" class="form-control" id="add_mpr" name="add_mpr" value="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <h4>Elemental Resistances</h4>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="defense_water" class="form-label">Water</label>
+                                    <input type="number" class="form-control" id="defense_water" name="defense_water" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="defense_wind" class="form-label">Wind</label>
+                                    <input type="number" class="form-control" id="defense_wind" name="defense_wind" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="defense_fire" class="form-label">Fire</label>
+                                    <input type="number" class="form-control" id="defense_fire" name="defense_fire" value="0">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="defense_earth" class="form-label">Earth</label>
+                                    <input type="number" class="form-control" id="defense_earth" name="defense_earth" value="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="icon" class="form-label">Icon</label>
+                    <input type="file" class="form-control" id="icon" name="icon" accept="image/png,image/jpeg,image/gif">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="note" class="form-label">Notes</label>
+                    <textarea class="form-control" id="note" name="note" rows="3"></textarea>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="armor_list.php" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Add Armor Item</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-
-<?php 
-// Close connection
-$conn->close(); 
-?>
+<?php include 'footer.php'; ?>

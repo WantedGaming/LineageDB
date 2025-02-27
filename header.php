@@ -165,55 +165,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
             margin-bottom: 0.5rem;
         }
         
-        /* Custom switch for theme toggle */
-        .theme-switch-wrapper {
-            display: flex;
-            align-items: center;
-        }
-        
-        .theme-switch {
-            display: inline-block;
-            height: 24px;
-            position: relative;
-            width: 48px;
-        }
-        
-        .theme-switch input {
-            display: none;
-        }
-        
-        .slider {
-            background-color: #333;
-            bottom: 0;
-            cursor: pointer;
-            left: 0;
-            position: absolute;
-            right: 0;
-            top: 0;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        
-        .slider:before {
-            background-color: #fff;
-            bottom: 4px;
-            content: "";
-            height: 16px;
-            left: 4px;
-            position: absolute;
-            transition: .4s;
-            width: 16px;
-            border-radius: 50%;
-        }
-        
-        input:checked + .slider {
-            background-color: var(--accent-color);
-        }
-        
-        input:checked + .slider:before {
-            transform: translateX(24px);
-        }
-        
         /* Item icons */
         .item-icon {
             border-radius: 4px;
@@ -244,12 +195,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link <?php echo ($current_page == 'index.php') ? 'active' : ''; ?>" href="index.php">
-                            <i class="bi bi-grid me-1"></i>Armor List
-                        </a>
-                    </li>
-                    <!-- Change the "Add New" link to a dropdown menu -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle <?php echo ($current_page == 'add_armor.php' || $current_page == 'add_weapon.php') ? 'active' : ''; ?>" href="#" id="addDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-plus-circle me-1"></i>Add
@@ -261,36 +206,15 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             <li><a class="dropdown-item" href="add_accessory.php">Accessory</a></li>
                         </ul>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="statsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-bar-chart me-1"></i>Stats
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="statsDropdown">
-                            <li><a class="dropdown-item" href="stats.php?view=grade">By Item Grade</a></li>
-                            <li><a class="dropdown-item" href="stats.php?view=type">By Type</a></li>
-                            <li><a class="dropdown-item" href="stats.php?view=class">By Class Restriction</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="stats.php?view=attributes">Attribute Distribution</a></li>
-                        </ul>
-                    </li>
                 </ul>
-                <div class="d-flex align-items-center">
-                    <div class="theme-switch-wrapper me-3">
-                        <label class="theme-switch" for="theme-toggle">
-                            <input type="checkbox" id="theme-toggle" checked>
-                            <span class="slider"></span>
-                        </label>
-                        <span class="ms-2 d-none d-sm-inline">Dark</span>
+                <form class="d-flex" action="index.php" method="get">
+                    <div class="input-group">
+                        <input class="form-control" type="search" name="search" placeholder="Search" aria-label="Search" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                        <button class="btn btn-outline-light" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
                     </div>
-                    <form class="d-flex" action="index.php" method="get">
-                        <div class="input-group">
-                            <input class="form-control" type="search" name="search" placeholder="Search" aria-label="Search" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
-                            <button class="btn btn-outline-light" type="submit">
-                                <i class="bi bi-search"></i>
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                </form>
             </div>
         </div>
     </nav>

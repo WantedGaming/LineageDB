@@ -58,7 +58,15 @@ include 'header.php';
                         <span>
                             <i class="bi bi-backpack me-2"></i>Accessories
                         </span>
-                        <span class="badge bg-secondary rounded-pill">Coming Soon</span>
+                        <span class="badge bg-primary rounded-pill">
+                            <?php 
+                            // Define accessory types to count from the armor table
+                            $accessoryTypes = ['PENDANT', 'BADGE', 'SENTENCE', 'RON', 'EARRING', 'BELT', 'RING', 'RING_2', 'AMULET'];
+                            $typesString = "'" . implode("','", $accessoryTypes) . "'";
+                            $accessoryCount = $conn->query("SELECT COUNT(*) as count FROM armor WHERE type IN ($typesString)")->fetch_assoc()['count'];
+                            echo number_format($accessoryCount); 
+                            ?>
+                        </span>
                     </a>
                 </div>
             </div>
