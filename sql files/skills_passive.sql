@@ -1,0 +1,152 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Feb 27, 2025 at 11:25 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `l1j_remastered`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `skills_passive`
+--
+
+CREATE TABLE `skills_passive` (
+  `passive_id` int(3) NOT NULL DEFAULT -1,
+  `name` varchar(100) DEFAULT NULL,
+  `desc_kr` varchar(100) NOT NULL,
+  `desc_en` varchar(100) NOT NULL,
+  `duration` int(6) NOT NULL DEFAULT 0,
+  `on_icon_id` int(6) NOT NULL DEFAULT 0,
+  `tooltip_str_id` int(6) NOT NULL DEFAULT 0,
+  `is_good` enum('false','true') NOT NULL DEFAULT 'true',
+  `class_type` enum('lancer','fencer','warrior','illusionist','dragonknight','darkelf','wizard','elf','knight','crown','normal','none') NOT NULL DEFAULT 'none',
+  `back_active_skill_id` int(10) NOT NULL DEFAULT -1,
+  `back_passive_id` int(3) NOT NULL DEFAULT -1,
+  `grade` enum('ONLY','MYTH','LEGEND','RARE','NORMAL') NOT NULL DEFAULT 'NORMAL'
+) ENGINE=InnoDB DEFAULT CHARSET=euckr COLLATE=euckr_korean_ci;
+
+--
+-- Dumping data for table `skills_passive`
+--
+
+INSERT INTO `skills_passive` (`passive_id`, `name`, `desc_kr`, `desc_en`, `duration`, `on_icon_id`, `tooltip_str_id`, `is_good`, `class_type`, `back_active_skill_id`, `back_passive_id`, `grade`) VALUES
+(1, '$19099', '크래쉬', 'Crash', 0, 6184, 0, 'true', 'warrior', -1, -1, 'NORMAL'),
+(2, '$19100', '퓨리', 'Fury', 0, 6171, 0, 'true', 'warrior', -1, -1, 'NORMAL'),
+(3, '$19101', '슬레이어', 'Slayer', 0, 10650, 8611, 'true', 'warrior', -1, -1, 'NORMAL'),
+(5, '$19102', '아머 가드', 'Armor Guard', 0, 6183, 0, 'true', 'warrior', -1, -1, 'NORMAL'),
+(6, '$19103', '타이탄: 락', 'Titan Lock', 0, 10656, 8606, 'true', 'warrior', -1, -1, 'NORMAL'),
+(7, '$19104', '타이탄: 블릿', 'Titan Blitz', 0, 10658, 8608, 'true', 'warrior', -1, -1, 'NORMAL'),
+(8, '$19105', '타이탄: 매직', 'Titan Magic', 0, 10657, 8607, 'true', 'warrior', -1, -1, 'NORMAL'),
+(10, '$28224', '카운터 배리어: 베테랑', 'Counter Barrier: Veteran', 0, 8850, 0, 'true', 'knight', 90, -1, 'NORMAL'),
+(11, '$28232', '아머 브레이크: 데스티니', 'Armor Break: Destiny', 0, 8847, 0, 'false', 'darkelf', 111, -1, 'NORMAL'),
+(12, '$28231', '더블 브레이크: 데스티니', 'Double Break: Destiny', 0, 8841, 0, 'true', 'darkelf', 104, -1, 'NORMAL'),
+(13, '$28244', '데스페라도: 앱솔루트', 'Desperado: Absolute', 0, 8842, 0, 'false', 'warrior', 229, -1, 'RARE'),
+(14, '$28237', '썬더 그랩: 브레이브', 'Thunder Grab: Brave', 0, 8846, 0, 'false', 'dragonknight', 191, -1, 'NORMAL'),
+(15, '$28238', '포우 슬레이어: 브레이브', 'Foe Slayer: Brave', 0, 8853, 0, 'true', 'dragonknight', 186, -1, 'NORMAL'),
+(16, '$29486', '아우라키아', 'Aurakia', 0, 9445, 0, 'true', 'dragonknight', -1, -1, 'NORMAL'),
+(17, '$29488', '다크호스', 'Dark Horse', 0, 9442, 0, 'true', 'illusionist', -1, -1, 'NORMAL'),
+(18, '$2515', '파이널 번', 'Final Burn', 0, 9489, 0, 'true', 'darkelf', -1, -1, 'NORMAL'),
+(21, '$10034', '레지스트 엘리멘트', 'Resist Element', 0, 9496, 0, 'true', 'elf', -1, -1, 'NORMAL'),
+(22, '$30683', '글로리 어스', 'Glory Earth', 0, 9605, 0, 'true', 'elf', -1, -1, 'LEGEND'),
+(23, '$30897', '인피니티:아머', 'Infinity: Armor', 0, 9679, 0, 'true', 'fencer', -1, -1, 'NORMAL'),
+(24, '$30899', '인피니티:블릿', 'Infinity: Blitz', 0, 9678, 0, 'true', 'fencer', -1, -1, 'NORMAL'),
+(25, '$30898', '인피니티:닷지', 'Infinity: Dodge', 0, 9677, 0, 'true', 'fencer', -1, -1, 'NORMAL'),
+(26, '$30896', '다마스커스', 'Damascus', 0, 9671, 0, 'true', 'fencer', -1, -1, 'NORMAL'),
+(27, '$30894', '패러독스', 'Paradox', 0, 9682, 0, 'true', 'fencer', -1, -1, 'NORMAL'),
+(28, '$30901', '그로우스', 'Growth', 0, 9670, 0, 'true', 'fencer', -1, -1, 'NORMAL'),
+(29, '$30895', '레이지', 'Rage', 0, 9673, 0, 'true', 'fencer', -1, -1, 'NORMAL'),
+(30, '$30892', '팬텀: 리퍼', 'Phantom: Reaper', 0, 9686, 0, 'false', 'fencer', 5001, -1, 'RARE'),
+(31, '$30893', '팬텀: 데스', 'Phantom: Death', 0, 9685, 0, 'false', 'fencer', -1, 30, 'ONLY'),
+(32, '$30902', '플레임', 'Frame', 0, 9688, 0, 'true', 'fencer', -1, -1, 'NORMAL'),
+(33, '$30900', '인피니티:블러드', 'Infinity: Blood', 0, 9680, 0, 'true', 'fencer', -1, -1, 'NORMAL'),
+(34, '$30903', '서바이브', 'Survive', 0, 9676, 0, 'true', 'fencer', -1, -1, 'NORMAL'),
+(36, '$30905', '판테라: 쇼크', 'Pantera: Shock', 0, 9729, 0, 'false', 'fencer', 5002, -1, 'MYTH'),
+(38, '$10036', '블러드 투 소울', 'Bloody Soul', 0, 729, 0, 'true', 'elf', -1, -1, 'NORMAL'),
+(39, '$31468', '이뮨 투 함: 세인트', 'Immune To Harm: Saint', 60, 9820, 0, 'true', 'wizard', 67, -1, 'NORMAL'),
+(40, '$5927', '디스트로이:피어', 'Destroy: Fear', 16, 3090, 0, 'false', 'dragonknight', 182, -1, 'NORMAL'),
+(41, '$5932', '디스트로이:호러', 'Destroy:Horror', 16, 3085, 0, 'false', 'dragonknight', 182, -1, 'NORMAL'),
+(42, '$15722', '아우라', 'Aura', 0, 9517, 0, 'true', 'crown', -1, -1, 'NORMAL'),
+(43, '$31465', '리덕션 아머: 베테랑', 'Reduction Armor: Veteran', 0, 9816, 0, 'true', 'knight', 87, -1, 'NORMAL'),
+(44, '$31466', '레이징 포스', 'Raging Force', 0, 9815, 0, 'true', 'knight', -1, -1, 'NORMAL'),
+(45, '$5943', '일루션:리치', 'Illusion: Lich', 0, 3115, 1343, 'true', 'illusionist', -1, -1, 'NORMAL'),
+(46, '$5948', '일루션:골렘', 'Illusion[Golem]', 0, 3113, 1347, 'true', 'illusionist', -1, -1, 'NORMAL'),
+(47, '$2509', '버닝 스피릿츠', 'Burning Spirit', 0, 1112, 0, 'true', 'darkelf', -1, -1, 'NORMAL'),
+(48, '$3171', '드레스 이베이젼', 'Dress Evasion', 0, 1608, 970, 'true', 'darkelf', -1, -1, 'NORMAL'),
+(49, '$31470', '루시퍼: 데스티니', 'Lucifer: Destiny', 60, 9817, 0, 'true', 'darkelf', 233, -1, 'NORMAL'),
+(50, '$31469', '마이스터 어큐러시', 'Accuracy', 0, 9819, 0, 'true', 'wizard', -1, -1, 'NORMAL'),
+(52, '$32747', '크루얼: 컨빅션', 'Cruel:Conviction', 0, 10244, 0, 'false', 'lancer', 5055, -1, 'LEGEND'),
+(53, '$32748', '프레셔: 데스 리콜', 'Pressure: Death Recall', 0, 10155, 0, 'false', 'lancer', 5054, -1, 'ONLY'),
+(55, '$32729', '닷지 브레이크', 'Spear Technique (Dodge Break)', 0, 10136, 0, 'true', 'lancer', -1, -1, 'NORMAL'),
+(56, '$32730', '마엘스트롬', 'Spear Technique (Maelstrom)', 0, 10140, 0, 'true', 'lancer', -1, -1, 'NORMAL'),
+(57, '$32731', '데들리 스트라이크', 'Spear Technique (Deadly Strike)', 0, 10137, 0, 'true', 'lancer', -1, -1, 'NORMAL'),
+(58, '$32732', '벤전스', 'Spear Technique (Vengeance)', 0, 10142, 0, 'true', 'lancer', -1, -1, 'NORMAL'),
+(59, '$32733', '택티컬 어드밴스', 'Spear Technique (Tactical Advance)', 0, 10154, 8030, 'true', 'lancer', -1, -1, 'NORMAL'),
+(60, '$32734', '인크리즈 레인지', 'Spear Technique (Increase Range)', 0, 10144, 0, 'true', 'lancer', -1, -1, 'NORMAL'),
+(61, '$5920', '드래곤 스킨', 'Dragon Skin', 0, 3080, 7853, 'true', 'dragonknight', -1, -1, 'NORMAL'),
+(63, '$15500', '솔리드 캐리지', 'Solid Carriage', 0, 10196, 1087, 'true', 'knight', -1, -1, 'NORMAL'),
+(64, '$28222', '프라이드', 'Pride', 0, 10204, 5264, 'true', 'knight', -1, -1, 'NORMAL'),
+(65, '$33761', '메디테이션: 비욘드', 'Meditation: Beyond', 0, 10192, 0, 'true', 'wizard', 31, -1, 'NORMAL'),
+(66, '$33764', '쉐도우 아머: 데스티니', 'Shadow Armor: Destiny', 0, 10197, 0, 'true', 'darkelf', 98, -1, 'NORMAL'),
+(67, '$33765', '솔리드 노트', 'Solid Knot', 0, 10195, 0, 'true', 'dragonknight', -1, -1, 'NORMAL'),
+(68, '$33766', '램페이지', 'Rampage', 0, 10199, 0, 'true', 'dragonknight', -1, -1, 'NORMAL'),
+(69, '$33767', '본 브레이크: 래스트', 'Bone Break: Last', 0, 10194, 0, 'false', 'illusionist', 207, -1, 'NORMAL'),
+(71, '$33763', '무빙 악셀레이션: 맥시멈', 'Moving Acceleration: Maximum', 0, 10198, 0, 'true', 'darkelf', 100, -1, 'NORMAL'),
+(76, '$34997', '디스인티그레이트: 네메시스', 'Disintegrate: Nemesis', 0, 10383, 0, 'true', 'wizard', 76, -1, 'MYTH'),
+(77, '$34998', '홀리 워크: 에볼루션', 'Holy Walk: Evolution', 0, 10399, 0, 'true', 'wizard', 51, -1, 'RARE'),
+(78, '$1993', '어드밴스 스피릿', 'Advanced Spirit', 0, 1607, 982, 'true', 'wizard', -1, -1, 'NORMAL'),
+(79, '$35039', '그레이트 서먼 몬스터', 'Greater Summon Monster', 0, 10382, 0, 'true', 'wizard', 50, -1, 'NORMAL'),
+(80, '$34999', '에테리얼 서클', 'Aetherial Circle', 0, 10385, 0, 'true', 'wizard', -1, -1, 'NORMAL'),
+(81, '$30906', '팬텀: 레퀴엠', 'Phantom: Requiem', 0, 10501, 0, 'false', 'fencer', -1, 30, 'NORMAL'),
+(82, '$35905', '엠파이어: 오버로드', 'Empire: Overlord', 0, 10518, 0, 'false', 'crown', 122, -1, 'NORMAL'),
+(83, '$29983', '샤이닝 아머', 'Shining Armor', 0, 9483, 5892, 'true', 'crown', -1, -1, 'NORMAL'),
+(84, '$29984', '마제스티', 'Majesty', 0, 9518, 5893, 'true', 'crown', -1, -1, 'NORMAL'),
+(85, '$19107', '기간틱', 'Gigantic', 0, 6168, 3918, 'true', 'warrior', -1, -1, 'NORMAL'),
+(86, '$35914', '카운터 배리어: 마스터', 'Counter Barrier: Master', 0, 10545, 8511, 'true', 'knight', -1, 10, 'MYTH'),
+(87, '$35915', '소울 배리어: 아머', 'Soul Barrier: Armor', 0, 10521, 8475, 'true', 'elf', 134, -1, 'NORMAL'),
+(88, '$38734', '레이징 웨폰', 'Raging Weapon', 0, 10531, 8474, 'true', 'knight', -1, -1, 'RARE'),
+(89, '$35917', '스트라이커 게일: 샷', 'Striker Gail: Shot', 0, 10533, 8477, 'false', 'elf', 173, -1, 'NORMAL'),
+(90, '$30688', '데몰리션', 'Demolition', 0, 10660, 8609, 'true', 'warrior', -1, -1, 'LEGEND'),
+(91, '$33768', '버서크', 'Berserker', 0, 10654, 8613, 'true', 'warrior', -1, -1, 'NORMAL'),
+(92, '$36458', '타이탄: 비스트', 'Titan Beast', 0, 10652, 8610, 'true', 'warrior', -1, -1, 'MYTH'),
+(93, '$36720', '토마호크: 헌터', 'Tomahawk: Hunter', 0, 10702, 3992, 'true', 'warrior', 228, -1, 'NORMAL'),
+(94, '$37173', '트리플 애로우: 부스트', 'Triple Arrow: Boost', 0, 10863, 0, 'true', 'elf', 131, -1, 'MYTH'),
+(95, '$37175', '파인 사이트', 'Fine Sight', 0, 10393, 0, 'true', 'elf', -1, -1, 'NORMAL'),
+(96, '$5930', '모탈 바디', 'Mortal Body', 0, 10856, 1361, 'true', 'dragonknight', -1, -1, 'NORMAL'),
+(97, '$37178', '쉐도우 스탭: 체이서', 'Shadow Step: Chaser', 0, 10862, 8663, 'false', 'darkelf', 198, -1, 'MYTH'),
+(98, '$37179', '블라인드 하이딩: 어쌔신', 'Blind Hiding: Assassin', 0, 10882, 8665, 'true', 'darkelf', 96, -1, 'NORMAL'),
+(99, '$29487', '뫼비우스', 'Mobius', 0, 11050, 5550, 'true', 'illusionist', -1, -1, 'NORMAL'),
+(100, '$40217', '타이런트: 엑스큐션', 'Tyrant: Execution', 0, 11440, 9418, 'false', 'crown', 5027, -1, 'RARE'),
+(101, '$40219', '컨쿼러', 'Conqueror', 0, 11441, 9420, 'true', 'crown', -1, -1, 'ONLY'),
+(102, '$40975', '포우 슬레이어: 포스', 'Fou Slayer: Force', 0, 11556, 0, 'false', 'dragonknight', -1, 15, 'RARE');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `skills_passive`
+--
+ALTER TABLE `skills_passive`
+  ADD PRIMARY KEY (`passive_id`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
