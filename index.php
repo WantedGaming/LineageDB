@@ -45,7 +45,7 @@ include 'header.php';
                     </a>
                     <a href="weapon_list.php" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                         <span>
-                            <i class="bi bi-sword me-2"></i>Weapons
+                            <i class="bi bi-screwdriver"></i> Weapons
                         </span>
                         <span class="badge bg-primary rounded-pill">
                             <?php 
@@ -138,7 +138,7 @@ include 'header.php';
                     </a>
                     <a href="view_monster.php" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                         <span>
-                            <i class="bi bi-monster me-2"></i>Monsters
+                            <i class="bi bi-fullscreen-exit">  </i>Monsters
                         </span>
                         <span class="badge bg-primary rounded-pill">
                             <?php 
