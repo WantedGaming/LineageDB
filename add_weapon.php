@@ -144,29 +144,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 // Add weapon validation function to crud_functions
-if (!function_exists('validateWeaponInput')) {
-    function validateWeaponInput($weaponData) {
-        $errors = [];
+function validateWeaponInput($weaponData) {
+    $errors = [];
 
-        // Basic validation rules
-        if (empty($weaponData['desc_en'])) {
-            $errors[] = "English description is required.";
-        }
-
-        if (empty($weaponData['type'])) {
-            $errors[] = "Weapon type is required.";
-        }
-
-        if (!is_numeric($weaponData['dmg_small']) || $weaponData['dmg_small'] < 0) {
-            $errors[] = "Invalid minimum damage value.";
-        }
-
-        if (!is_numeric($weaponData['dmg_large']) || $weaponData['dmg_large'] < 0) {
-            $errors[] = "Invalid maximum damage value.";
-        }
-
-        return $errors;
+    // Basic validation rules
+    if (empty($weaponData['desc_en'])) {
+        $errors[] = "English description is required.";
     }
+
+    if (empty($weaponData['type'])) {
+        $errors[] = "Weapon type is required.";
+    }
+
+    if (!is_numeric($weaponData['dmg_small']) || $weaponData['dmg_small'] < 0) {
+        $errors[] = "Invalid minimum damage value.";
+    }
+
+    if (!is_numeric($weaponData['dmg_large']) || $weaponData['dmg_large'] < 0) {
+        $errors[] = "Invalid maximum damage value.";
+    }
+
+    return $errors;
 }
 ?>
 
