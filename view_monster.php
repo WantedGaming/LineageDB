@@ -1,201 +1,213 @@
 <?php
-// view_monster.php - Monster Listing Page
+// view_monster.php - Monster Detail Page
 require_once 'database.php';
 
 // Page setup
-$page_title = "Monster Database";
+$page_title = "Monster Details";
 include 'header.php';
 
-// Pagination setup
-$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-$monstersPerPage = 25;
-$offset = ($page - 1) * $monstersPerPage;
-
-// Prepare filtered query
-$searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
-$filterQuery = '';
-$bindParams = [];
-$bindTypes = '';
-
-if (!empty($searchTerm)) {
-    $filterQuery = "WHERE impl = 'L1Monster' AND (desc_en LIKE ? OR npcid LIKE ?)";
-    $searchParam = "%{$searchTerm}%";
-    $bindParams = [&$searchParam, &$searchParam];
-    $bindTypes = 'ss';
-} else {
-    $filterQuery = "WHERE impl = 'L1Monster'";
-}
-
-try {
-    // Count total monsters
-    $countQuery = "SELECT COUNT(*) AS total FROM npc {$filterQuery}";
-    $countStmt = $conn->prepare($countQuery);
+// Check if monster ID is provided
+if (isset($_GET['id'])) {
+    $monsterId = $_GET['id'];
     
-    if (!empty($bindParams)) {
-        $countStmt->bind_param($bindTypes, ...$bindParams);
-    }
-    
-    $countStmt->execute();
-    $countResult = $countStmt->get_result();
-    $totalMonsters = $countResult->fetch_assoc()['total'];
-    $totalPages = ceil($totalMonsters / $monstersPerPage);
-    $countStmt->close();
+    try {
+        // Fetch monster details
+        $query = "SELECT * FROM npc WHERE npcid = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param('i', $monsterId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $monster = $result->fetch_assoc();
+        
+        if ($monster) {
+            // Display monster details
+            ?>
+            <div class="container mt-4">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card mb-4">
+                            <div class="card-body text-center">
+                                <?php
+                                $spritePath = "icons/ms{$monster['spriteId']}.png";
+                                if (file_exists($spritePath)):
+                                ?>
+                                    <img src="<?php echo $spritePath; ?>"
+                                         alt="Monster Sprite"
+                                         class="img-fluid">
+                                <?php else: ?>
+                                    <i class="bi bi-image fs-1 text-muted"></i>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h4 class="mb-0"><?php echo htmlspecialchars($monster['desc_en']); ?></h4>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-bordered">
+                                    <tbody>
+                                        <tr>
+                                            <th>ID</th>
+                                            <td><?php echo htmlspecialchars($monster['npcid']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Level</th>
+                                            <td><?php echo htmlspecialchars($monster['lvl']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>HP</th>
+                                            <td><?php echo htmlspecialchars($monster['hp']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>MP</th>
+                                            <td><?php echo htmlspecialchars($monster['mp']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>AC</th>
+                                            <td><?php echo htmlspecialchars($monster['ac']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>STR</th>
+                                            <td><?php echo htmlspecialchars($monster['str']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>CON</th>
+                                            <td><?php echo htmlspecialchars($monster['con']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>DEX</th>
+                                            <td><?php echo htmlspecialchars($monster['dex']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>WIS</th>
+                                            <td><?php echo htmlspecialchars($monster['wis']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>INT</th>
+                                            <td><?php echo htmlspecialchars($monster['intel']); ?></td>  
+                                        </tr>
+                                        <tr>
+                                            <th>MR</th>
+                                            <td><?php echo htmlspecialchars($monster['mr']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>EXP</th>
+                                            <td><?php echo htmlspecialchars($monster['exp']); ?></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Drops</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Item Name</th>
+                                                <th>Min</th>
+                                                <th>Max</th>
+                                                <th>Chance</th>
+                                                <th>Enchant</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php
+                                            // Fetch drop data based on droplist.csv
+                                            $dropsFile = fopen('droplist.csv', 'r');
+                                            fgetcsv($dropsFile); // Skip header row
 
-    // Fetch monsters
-    $query = "SELECT npcid, desc_en, lvl, hp, impl, spriteId 
-              FROM npc 
-              {$filterQuery}
-              ORDER BY npcid 
-              LIMIT ? OFFSET ?";
-    
-    $stmt = $conn->prepare($query);
-    
-    if (!empty($bindParams)) {
-        // Add LIMIT and OFFSET parameters
-        $bindParams[] = &$monstersPerPage;
-        $bindParams[] = &$offset;
-        $bindTypes .= 'ii';
-        $stmt->bind_param($bindTypes, ...$bindParams);
-    } else {
-        // Just bind LIMIT and OFFSET
-        $stmt->bind_param('ii', $monstersPerPage, $offset);
-    }
-    
-    $stmt->execute();
-    $result = $stmt->get_result();
-?>
-
-<div class="container mt-4">
-    <h1 class="mb-4">Monster Database</h1>
-
-    <!-- Search Form -->
-    <form method="GET" action="" class="mb-4">
-        <div class="input-group">
-            <input type="text" name="search" class="form-control" 
-                   placeholder="Search monsters by name or ID" 
-                   value="<?php echo htmlspecialchars($searchTerm); ?>">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-search me-2"></i>Search
-            </button>
-            <?php if (!empty($searchTerm)): ?>
-                <a href="index.php" class="btn btn-secondary">
-                    <i class="bi bi-x-circle me-2"></i>Clear
+                                            while ($drop = fgetcsv($dropsFile)) {
+                                                list($mobId, $mobname_kr, $mobname_en, $moblevel, $itemId, $itemname_kr, $itemname_en, $min, $max, $chance, $Enchant) = $drop;
+                                                
+                                                if ($mobId == $monsterId):
+                                            ?>
+                                                <tr>
+                                                    <td><?php echo htmlspecialchars($itemId); ?></td>
+                                                    <td><?php echo htmlspecialchars($itemname_en); ?></td>
+                                                    <td><?php echo htmlspecialchars($min); ?></td>
+                                                    <td><?php echo htmlspecialchars($max); ?></td>
+                                                    <td><?php echo htmlspecialchars($chance); ?></td>
+                                                    <td><?php echo htmlspecialchars($Enchant); ?></td>
+                                                </tr>
+                                            <?php
+                                                endif;
+                                            }
+                                            
+                                            fclose($dropsFile);
+                                            ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Locations</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- TODO: Implement location data display -->
+                                <p>Location data goes here</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <a href="monster_list.php" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Monster List
+                    </a>
+                </div>
+            </div>
+            <?php
+        } else {
+            // Monster not found
+            ?>
+            <div class="container mt-4">
+                <div class="alert alert-warning">
+                    <strong>Monster not found.</strong> The requested monster does not exist.
+                </div>
+                <a href="monster_list.php" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Monster List
                 </a>
-            <?php endif; ?>
-        </div>
-    </form>
-
-    <!-- Monsters Table -->
-    <div class="card">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-bug me-2"></i>Monsters 
-                    <?php if (!empty($searchTerm)): ?>
-                        <small class="text-muted">
-                            (Search: <?php echo htmlspecialchars($searchTerm); ?>)
-                        </small>
-                    <?php endif; ?>
-                </h5>
-                <span class="badge bg-info">
-                    Total Monsters: <?php echo $totalMonsters; ?>
-                </span>
+            </div>
+            <?php
+        }
+        
+        // Close statement
+        $stmt->close();
+        
+    } catch (Exception $e) {
+        // Error handling 
+        ?>
+        <div class="container mt-4">
+            <div class="alert alert-danger">
+                <strong>Error:</strong> <?php echo htmlspecialchars($e->getMessage()); ?>  
             </div>
         </div>
-        
-        <div class="table-responsive">
-            <table class="table table-striped table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Sprite</th>
-                        <th>Name</th>
-                        <th>Level</th>
-                        <th>HP</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while ($monster = $result->fetch_assoc()): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($monster['npcid']); ?></td>
-                            <td>
-                                <?php 
-                                $spritePath = "sprites/{$monster['spriteId']}.png";
-                                if (file_exists($spritePath)): 
-                                ?>
-                                    <img src="<?php echo $spritePath; ?>" 
-                                         alt="Sprite" 
-                                         style="max-width: 50px; max-height: 50px;"
-                                         class="img-thumbnail">
-                                <?php else: ?>
-                                    <i class="bi bi-image text-muted"></i>
-                                <?php endif; ?>
-                            </td>
-                            <td><?php echo htmlspecialchars($monster['desc_en']); ?></td>
-                            <td><?php echo htmlspecialchars($monster['lvl']); ?></td>
-                            <td><?php echo htmlspecialchars($monster['hp']); ?></td>
-                            <td>
-                                <a href="view_monster.php?id=<?php echo $monster['npcid']; ?>" 
-                                   class="btn btn-sm btn-primary">
-                                    <i class="bi bi-eye me-1"></i>View
-                                </a>
-                            </td>
-                        </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination -->
-        <div class="card-footer">
-            <nav aria-label="Monster page navigation">
-                <ul class="pagination justify-content-center mb-0">
-                    <?php if ($page > 1): ?>
-                        <li class="page-item">
-                            <a class="page-link" 
-                               href="?page=<?php echo $page - 1; 
-                               echo !empty($searchTerm) ? '&search=' . urlencode($searchTerm) : ''; ?>">
-                                <i class="bi bi-chevron-left me-1"></i>Previous
-                            </a>
-                        </li>
-                    <?php endif; ?>
-
-                    <li class="page-item disabled">
-                        <span class="page-link">
-                            Page <?php echo $page; ?> of <?php echo $totalPages; ?>
-                        </span>
-                    </li>
-
-                    <?php if ($page < $totalPages): ?>
-                        <li class="page-item">
-                            <a class="page-link" 
-                               href="?page=<?php echo $page + 1; 
-                               echo !empty($searchTerm) ? '&search=' . urlencode($searchTerm) : ''; ?>">
-                                Next<i class="bi bi-chevron-right ms-1"></i>
-                            </a>
-                        </li>
-                    <?php endif; ?>
-                </ul>
-            </nav>
-        </div>
-    </div>
-</div>
-
-<?php 
-    // Close statement
-    $stmt->close();
-
-} catch (Exception $e) {
-    // Error handling
-    ?>
-    <div class="container mt-4">
-        <div class="alert alert-danger">
-            <strong>Error:</strong> <?php echo htmlspecialchars($e->getMessage()); ?>
-        </div>
-    </div>
-    <?php
-} finally {
-    include 'footer.php';
+        <?php
+    }
+} else {
+    // Redirect if monster ID is not provided
+    header("Location: monster_list.php");
+    exit();  
 }
+
+include 'footer.php';
 ?>

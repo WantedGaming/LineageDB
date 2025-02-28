@@ -176,7 +176,7 @@ include 'header.php';
         
         <!-- Locations Box -->
         <div class="col-md-4 mb-4">
-            <div class="card h-100 border-info category-card" data-href="#">
+            <div class="card h-100 border-info category-card" data-href="locations_list.php">
                 <div class="card-body text-center">
                     <div class="mb-3">
                         <i class="bi bi-map" style="font-size: 3.5rem; color: var(--accent-color);"></i>
@@ -214,14 +214,14 @@ include 'header.php';
         
         <!-- Monsters Box -->
         <div class="col-md-4 mb-4">
-            <div class="card h-100 border-warning category-card" data-href="view_monster.php">
+            <div class="card h-100 border-warning category-card" data-href="monster_list.php">
                 <div class="card-body text-center">
                     <div class="mb-3">
                         <i class="bi bi-bug" style="font-size: 3.5rem; color: var(--accent-color);"></i>
                     </div>
                     <h4 class="card-title mb-3">Monsters</h4>
                     <p class="card-text mb-4">Search for monsters by level, location, and loot tables.</p>
-                    <a href="view_monster.php" class="btn btn-warning d-flex justify-content-between align-items-center">
+                    <a href="monster_list.php" class="btn btn-warning d-flex justify-content-between align-items-center">
                         <span>View Monsters</span>
                         <span class="badge bg-light text-warning rounded-pill ms-2">
                             <?php echo getSafeCount($conn, 'npc'); ?>

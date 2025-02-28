@@ -1,0 +1,36 @@
+droplist.sql 
+- mobid matches with npcid in npc.sql table
+- itemid matches with item_id in etcitem.sql table
+- itemid also matches with item_id in armor.sql table
+- itemid also matches with item_id in weapon.sql table
+
+armor.sql
+- iconid matches with png files in /icons folder
+
+weapon.sql
+- iconid matches with png files in /icons folder
+
+mapid.sql
+- pngid matches with png files in /icons folder
+
+npc.sql
+- 'spriteid' column is the name of the image file which needs to add ms in the beginning of. For example. NPCID 300 is Experience Orge with the spirteid of 16145. In order to located the png file, we need to add ms16145.png, located in the /icons folder.
+- 'impl' column 
+  - L1Merchant = NPC Shops
+  - L1NPC = NPC
+  - L1Doll = Magic Dolls
+  - L1Monster = Monsters
+  - L1Dwarf = Storage NPC
+  - L1Teleporter = NPC Teleporter
+  - L1Guard = NPC Guards
+  - L1BlackKnight - Monsters found on the Black Battleship
+  - L1Housekeeper - NPC House Managers
+  - L1Scarecrow - Training Dummies
+  - L1Doppelganger = Monsters
+  
+shop.sql
+- npc_id matches with npcid in the npc.sql file and 'impl' column should be L1Merchant
+- item_id matches with item_id in etcitem.sql table
+
+skill_passive.sql
+- on_icon_id matches with png file in /icons folder
