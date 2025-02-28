@@ -72,9 +72,9 @@ try {
     $iconPath = "icons/{$location['pngId']}.png";
     $hasIcon = !empty($location['pngId']) && file_exists($iconPath);
 
-    // Boolean columns to display
+    // Boolean columns to display (with more descriptive names)
     $booleanColumns = [
-        'underwater' => 'Underwater Location',
+        'underwater' => 'Underwater Access',
         'markable' => 'Can Mark Location',
         'teleportable' => 'Teleportation Allowed',
         'escapable' => 'Can Escape',
@@ -84,11 +84,11 @@ try {
         'recall_pets' => 'Pets Can Be Recalled',
         'usable_item' => 'Items Usable',
         'usable_skill' => 'Skills Usable',
-        'dungeon' => 'Is Dungeon',
+        'dungeon' => 'Dungeon Location',
     ];
 
     // Fetch monsters spawning in this location
-		$monsterQuery = "SELECT DISTINCT n.npcid, n.desc_en, n.hp, n.mp, n.exp 
+    $monsterQuery = "SELECT DISTINCT n.npcid, n.desc_en, n.hp, n.mp, n.exp 
                  FROM spawnlist s
                  JOIN npc n ON s.npc_templateid = n.npcid
                  WHERE s.mapid = ?
@@ -111,93 +111,122 @@ try {
 }
 ?>
 
-<div class="container mt-4">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="locations_list.php">Locations</a></li>
-            <li class="breadcrumb-item active" aria-current="page"><?php echo htmlspecialchars($location['locationname']); ?></li>
-        </ol>
-    </nav>
-
+<div class="container">
     <div class="row">
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-map me-2"></i>Location Details
-                    </h5>
-                </div>
-                <div class="card-body text-center">
-                    <?php if ($hasIcon): ?>
-                        <img src="<?php echo $iconPath; ?>" alt="Location Icon" class="img-fluid mb-3" style="max-width: 200px;">
-                    <?php else: ?>
-                        <div class="no-icon text-muted mb-3" style="height: 200px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-image" style="font-size: 4rem;"></i>
-                            <p>No Icon Available</p>
+        <div class="col-md-9">
+            <div class="map-container mb-4" style="
+                background-color: rgba(255,255,255,0.05);
+                border: 2px solid var(--border-color);
+                border-radius: 12px;
+                padding: 15px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                overflow: hidden;
+            ">
+                <?php if ($hasIcon): ?>
+                    <img 
+                        src="<?php echo $iconPath; ?>" 
+                        alt="Location Icon" 
+                        class="img-fluid w-100" 
+                        style="
+                            max-height: 800px; 
+                            object-fit: contain; 
+                            border-radius: 8px;
+                            border: 1px solid rgba(255,255,255,0.1);
+                        "
+                    >
+                <?php else: ?>
+                    <div class="no-icon text-muted" style="
+                        height: 600px; 
+                        display: flex; 
+                        align-items: center; 
+                        justify-content: center; 
+                        background-color: rgba(255,255,255,0.1);
+                        border-radius: 8px;
+                    ">
+                        <div class="text-center">
+                            <i class="bi bi-image" style="font-size: 6rem;"></i>
+                            <p class="mt-3">No Icon Available</p>
                         </div>
-                    <?php endif; ?>
-                    
-                    <h4 class="card-title">
-                        <?php echo htmlspecialchars($location['locationname']); ?>
-                    </h4>
-                </div>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
         
-        <div class="col-md-8">
+        <div class="col-md-3">
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">Location Information</h5>
+                    <h5 class="mb-0">Basic</h5>
+                </div>
+                <div class="card-body p-3">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tr>
+                            <th class="ps-0">Map ID</th>
+                            <td class="text-end pe-0"><?php echo htmlspecialchars($location['mapid']); ?></td>
+                        </tr>
+                        <tr>
+                            <th class="ps-0">Location Name</th>
+                            <td class="text-end pe-0"><?php echo htmlspecialchars($location['locationname']); ?></td>
+                        </tr>
+                        <tr>
+                            <th class="ps-0">Coordinates</th>
+                            <td class="text-end pe-0">
+                                Start: (<?php echo htmlspecialchars($location['startX']) . ',' . htmlspecialchars($location['startY']); ?>)<br>
+                                End: (<?php echo htmlspecialchars($location['endX']) . ',' . htmlspecialchars($location['endY']); ?>)
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+			
+        </div>
+    </div>
+
+    <?php 
+    // Filter out attributes that are false
+    $activeAttributes = array_filter($booleanColumns, function($column) use ($location) {
+        return $location[$column] == 1;
+    }, ARRAY_FILTER_USE_KEY);
+
+    if (!empty($activeAttributes)): 
+    ?>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Allowed</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-6">
-                            <h6>Basic Information</h6>
-                            <table class="table table-sm table-borderless">
-                                <tr>
-                                    <th>Map ID</th>
-                                    <td><?php echo htmlspecialchars($location['mapid']); ?></td>
-                                </tr>
-                                <tr>
-                                    <th>Coordinates</th>
-                                    <td>
-                                        Start: (<?php echo htmlspecialchars($location['startX']) . ',' . htmlspecialchars($location['startY']); ?>)<br>
-                                        End: (<?php echo htmlspecialchars($location['endX']) . ',' . htmlspecialchars($location['endY']); ?>)
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <h6>Location Attributes</h6>
-                            <div class="row">
-                                <?php foreach ($booleanColumns as $column => $label): ?>
-                                    <div class="col-md-6 mb-2">
-                                        <div class="form-check">
-                                            <input 
-                                                class="form-check-input" 
-                                                type="checkbox" 
-                                                id="<?php echo $column; ?>" 
-                                                <?php echo $location[$column] ? 'checked' : ''; ?> 
-                                                disabled
-                                            >
-                                            <label class="form-check-label" for="<?php echo $column; ?>">
-                                                <?php echo htmlspecialchars($label); ?>
-                                            </label>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
+                        <?php foreach ($activeAttributes as $column => $label): ?>
+                            <div class="col-md-4 mb-2">
+                                <div class="form-check">
+                                    <input 
+                                        class="form-check-input" 
+                                        type="checkbox" 
+                                        id="<?php echo $column; ?>" 
+                                        checked 
+                                        disabled
+                                    >
+                                    <label class="form-check-label" for="<?php echo $column; ?>">
+                                        <?php echo htmlspecialchars($label); ?>
+                                    </label>
+                                </div>
                             </div>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
-            <?php if ($monsterResult && $monsterResult->num_rows > 0): ?>
-            <div class="card mb-4">
+    <?php if ($monsterResult && $monsterResult->num_rows > 0): ?>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="bi bi-bug me-2"></i>Monsters in this Location
+                        <i class="bi bi-bug me-2"></i>Monsters
                     </h5>
                 </div>
                 <div class="card-body p-0">
@@ -227,9 +256,9 @@ try {
                     </div>
                 </div>
             </div>
-            <?php endif; ?>
         </div>
     </div>
+    <?php endif; ?>
     
     <div class="text-center mt-4">
         <a href="locations_list.php" class="btn btn-secondary">
