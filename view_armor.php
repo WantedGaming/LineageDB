@@ -182,12 +182,12 @@ try {
                         Armor Details
                     </h5>
                 </div>
-                <div class="card-body text-center">
+               <div class="card-body text-center">
                     <?php if ($hasIcon): ?>
-                        <img src="<?php echo $iconPath; ?>" alt="Armor Icon" class="img-fluid mb-3" style="max-width: 200px;">
+                        <img src="<?php echo $iconPath; ?>" alt="Armor Icon" class="img-fluid mb-3" style="max-width: 768px; max-height: 768px; width: auto; height: auto;">
                     <?php else: ?>
-                        <div class="no-icon text-muted mb-3" style="height: 200px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-image" style="font-size: 4rem;"></i>
+                        <div class="no-icon text-muted mb-3" style="height: 400px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-image" style="font-size: 6rem;"></i>
                             <p>No Icon Available</p>
                         </div>
                     <?php endif; ?>

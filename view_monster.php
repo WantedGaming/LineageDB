@@ -34,15 +34,14 @@ if (isset($_GET['id'])) {
                                 $spritePath = "icons/ms{$monster['spriteId']}.png";
                                 if (file_exists($spritePath)):
                                 ?>
-                                    <div style="max-width: 100%; max-height: 100%; display: flex; align-items: center; justify-content: center; padding: 20px;">
-                                        <img src="<?php echo $spritePath; ?>"
-                                             alt="Monster Sprite"
-                                             style="max-width: 100%; max-height: 460px; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
-                                    </div>
+                                    <img src="<?php echo $spritePath; ?>"
+                                         alt="Monster Sprite"
+                                         class="img-fluid"
+                                         style="max-width: 492px; max-height: 738px; width: auto; height: auto;">
                                 <?php else: ?>
-                                    <div class="text-center p-5 w-100 h-100 d-flex flex-column align-items-center justify-content-center">
-                                        <i class="bi bi-image" style="font-size: 8rem; color: var(--text-secondary);"></i>
-                                        <p class="mt-3">No image available for this monster</p>
+                                    <div style="height: 492px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-image fs-1 text-muted" style="font-size: 6rem;"></i>
+                                        <p class="mt-3">No Sprite Available</p>
                                     </div>
                                 <?php endif; ?>
                             </div>
