@@ -87,11 +87,12 @@ try {
         'dungeon' => 'Dungeon Location',
     ];
 
-    // Fetch monsters spawning in this location
-    $monsterQuery = "SELECT DISTINCT n.npcid, n.desc_en, n.hp, n.mp, n.exp 
+    // Fetch monsters spawning in this location with enhanced information
+    $monsterQuery = "SELECT DISTINCT n.npcid, n.desc_en, n.hp, n.mp, n.exp, n.lvl, n.spriteId, n.is_bossmonster
                  FROM spawnlist s
                  JOIN npc n ON s.npc_templateid = n.npcid
-                 WHERE s.mapid = ?
+                 WHERE s.mapid = ? AND n.impl = 'L1Monster'
+                 ORDER BY n.lvl DESC, n.is_bossmonster DESC, n.desc_en
                  LIMIT 50";
     $monsterStmt = $conn->prepare($monsterQuery);
     $monsterStmt->bind_param("i", $mapId);
@@ -223,7 +224,7 @@ try {
     <?php if ($monsterResult && $monsterResult->num_rows > 0): ?>
     <div class="row">
         <div class="col-12">
-            <div class="card">
+            <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="bi bi-bug me-2"></i>Monsters
@@ -234,21 +235,46 @@ try {
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
+                                    <th class="px-3" style="width: 60px">Icon</th>
                                     <th class="px-3">Monster Name</th>
+                                    <th class="px-3 text-center">Level</th>
                                     <th class="px-3 text-center">HP</th>
                                     <th class="px-3 text-center">MP</th>
                                     <th class="px-3 text-center">EXP</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php while ($monster = $monsterResult->fetch_assoc()): ?>
+                                <?php while ($monster = $monsterResult->fetch_assoc()): 
+                                    // Add boss indicator without changing row color
+                                    $isBoss = !empty($monster['is_bossmonster']) && $monster['is_bossmonster'] == 1;
+                                ?>
                                     <tr class="clickable-row" data-href="view_monster.php?id=<?php echo $monster['npcid']; ?>">
+                                        <td class="px-3 text-center">
+                                            <?php 
+                                            $monsterIconPath = "icons/ms{$monster['spriteId']}.png";
+                                            if (file_exists($monsterIconPath)):
+                                            ?>
+                                                <img src="<?php echo $monsterIconPath; ?>" 
+                                                     alt="Monster Icon" 
+                                                     width="36" 
+                                                     height="36" 
+                                                     class="img-thumbnail">
+                                            <?php else: ?>
+                                                <div class="text-muted" style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;">
+                                                    <i class="bi bi-question-circle"></i>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
                                         <td class="px-3">
                                             <?php echo htmlspecialchars($monster['desc_en']); ?>
+                                            <?php if ($isBoss): ?>
+                                                <span class="badge bg-danger ms-1">Boss</span>
+                                            <?php endif; ?>
                                         </td>
-                                        <td class="px-3 text-center"><?php echo htmlspecialchars($monster['hp']); ?></td>
-                                        <td class="px-3 text-center"><?php echo htmlspecialchars($monster['mp']); ?></td>
-                                        <td class="px-3 text-center"><?php echo htmlspecialchars($monster['exp']); ?></td>
+                                        <td class="px-3 text-center"><?php echo htmlspecialchars($monster['lvl']); ?></td>
+                                        <td class="px-3 text-center"><?php echo number_format($monster['hp']); ?></td>
+                                        <td class="px-3 text-center"><?php echo number_format($monster['mp']); ?></td>
+                                        <td class="px-3 text-center"><?php echo number_format($monster['exp']); ?></td>
                                     </tr>
                                 <?php endwhile; ?>
                             </tbody>

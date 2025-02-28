@@ -26,43 +26,55 @@ if (isset($_GET['id'])) {
                 <div class="row">
                     <div class="col-md-8">
                         <div class="card mb-4">
-                            <div class="card-body text-center">
+                            <div class="card-header">
+                                <h4 class="mb-0"><?php echo htmlspecialchars($monster['desc_en']); ?> (Level <?php echo htmlspecialchars($monster['lvl']); ?>)</h4>
+                            </div>
+                            <div class="card-body text-center" style="height: 500px; background-color: rgba(0,0,0,0.05); padding: 0; display: flex; align-items: center; justify-content: center;">
                                 <?php
                                 $spritePath = "icons/ms{$monster['spriteId']}.png";
                                 if (file_exists($spritePath)):
                                 ?>
-                                    <img src="<?php echo $spritePath; ?>"
-                                         alt="Monster Sprite"
-                                         class="img-fluid">
+                                    <div style="max-width: 100%; max-height: 100%; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                                        <img src="<?php echo $spritePath; ?>"
+                                             alt="Monster Sprite"
+                                             style="max-width: 100%; max-height: 460px; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
+                                    </div>
                                 <?php else: ?>
-                                    <i class="bi bi-image fs-1 text-muted"></i>
+                                    <div class="text-center p-5 w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                                        <i class="bi bi-image" style="font-size: 8rem; color: var(--text-secondary);"></i>
+                                        <p class="mt-3">No image available for this monster</p>
+                                    </div>
                                 <?php endif; ?>
                             </div>
+                            <?php if (!empty($monster['weakAttr'])): ?>
+                            <div class="card-footer">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2"><strong>Elemental Weakness:</strong></span>
+                                    <span class="badge bg-danger"><?php echo htmlspecialchars($monster['weakAttr']); ?></span>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h4 class="mb-0"><?php echo htmlspecialchars($monster['desc_en']); ?></h4>
+                                <h5 class="mb-0">Stats</h5>
                             </div>
                             <div class="card-body">
-                                <table class="table table-bordered">
+                                <table class="table table-striped table-bordered">
                                     <tbody>
                                         <tr>
                                             <th>ID</th>
                                             <td><?php echo htmlspecialchars($monster['npcid']); ?></td>
                                         </tr>
                                         <tr>
-                                            <th>Level</th>
-                                            <td><?php echo htmlspecialchars($monster['lvl']); ?></td>
-                                        </tr>
-                                        <tr>
                                             <th>HP</th>
-                                            <td><?php echo htmlspecialchars($monster['hp']); ?></td>
+                                            <td><?php echo number_format($monster['hp']); ?></td>
                                         </tr>
                                         <tr>
                                             <th>MP</th>
-                                            <td><?php echo htmlspecialchars($monster['mp']); ?></td>
+                                            <td><?php echo number_format($monster['mp']); ?></td>
                                         </tr>
                                         <tr>
                                             <th>AC</th>
@@ -94,8 +106,16 @@ if (isset($_GET['id'])) {
                                         </tr>
                                         <tr>
                                             <th>EXP</th>
-                                            <td><?php echo htmlspecialchars($monster['exp']); ?></td>
+                                            <td><?php echo number_format($monster['exp']); ?></td>
                                         </tr>
+                                        <?php if (!empty($monster['is_bossmonster']) && $monster['is_bossmonster'] == 1): ?>
+                                        <tr>
+                                            <th>Boss</th>
+                                            <td>
+                                                <span class="badge bg-danger">Yes</span>
+                                            </td>
+                                        </tr>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
@@ -107,49 +127,120 @@ if (isset($_GET['id'])) {
                     <div class="col-md-12">
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="mb-0">Drops</h5>
+                                <h5 class="mb-0">
+                                    <i class="bi bi-box-seam me-2"></i>Drops
+                                </h5>
                             </div>
                             <div class="card-body">
+                                <?php
+                                // Fetch drop data from database with icon information
+                                $dropsQuery = "SELECT d.itemId, d.min, d.max, d.chance,
+                                              COALESCE(a.desc_en, w.desc_en, e.desc_en, 'Unknown Item') as item_name,
+                                              COALESCE(a.iconId, w.iconId, e.iconId, NULL) as iconId,
+                                              CASE 
+                                                WHEN a.item_id IS NOT NULL THEN 'armor'
+                                                WHEN w.item_id IS NOT NULL THEN 'weapon'
+                                                WHEN e.item_id IS NOT NULL THEN 'etcitem'
+                                                ELSE NULL
+                                              END as item_type
+                                              FROM droplist d
+                                              LEFT JOIN armor a ON d.itemId = a.item_id
+                                              LEFT JOIN weapon w ON d.itemId = w.item_id
+                                              LEFT JOIN etcitem e ON d.itemId = e.item_id
+                                              WHERE d.mobId = ?
+                                              ORDER BY d.chance DESC";
+
+                                $dropsStmt = $conn->prepare($dropsQuery);
+                                $dropsStmt->bind_param('i', $monsterId);
+                                $dropsStmt->execute();
+                                $dropsResult = $dropsStmt->get_result();
+
+                                if ($dropsResult->num_rows > 0):
+                                ?>
                                 <div class="table-responsive">
                                     <table class="table table-bordered table-hover">
-                                        <thead>
+                                        <thead class="table-dark">
                                             <tr>
-                                                <th>ID</th>
+                                                <th style="width: 60px">Icon</th>
                                                 <th>Item Name</th>
-                                                <th>Min</th>
-                                                <th>Max</th>
-                                                <th>Chance</th>
-                                                <th>Enchant</th>
+                                                <th style="width: 100px">Min-Max</th>
+                                                <th style="width: 100px">Chance</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php
-                                            // Fetch drop data based on droplist.csv
-                                            $dropsFile = fopen('droplist.csv', 'r');
-                                            fgetcsv($dropsFile); // Skip header row
-
-                                            while ($drop = fgetcsv($dropsFile)) {
-                                                list($mobId, $mobname_kr, $mobname_en, $moblevel, $itemId, $itemname_kr, $itemname_en, $min, $max, $chance, $Enchant) = $drop;
-                                                
-                                                if ($mobId == $monsterId):
-                                            ?>
+                                            <?php while ($drop = $dropsResult->fetch_assoc()): ?>
                                                 <tr>
-                                                    <td><?php echo htmlspecialchars($itemId); ?></td>
-                                                    <td><?php echo htmlspecialchars($itemname_en); ?></td>
-                                                    <td><?php echo htmlspecialchars($min); ?></td>
-                                                    <td><?php echo htmlspecialchars($max); ?></td>
-                                                    <td><?php echo htmlspecialchars($chance); ?></td>
-                                                    <td><?php echo htmlspecialchars($Enchant); ?></td>
+                                                    <td class="text-center">
+                                                        <?php 
+                                                        $iconPath = "icons/{$drop['iconId']}.png";
+                                                        if (!empty($drop['iconId']) && file_exists($iconPath)):
+                                                        ?>
+                                                            <img src="<?php echo $iconPath; ?>" alt="Item Icon" width="40" height="40" class="img-thumbnail">
+                                                        <?php else: ?>
+                                                            <div class="text-muted"><i class="bi bi-question-circle"></i></div>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <?php 
+                                                        $itemUrl = '';
+                                                        
+                                                        if ($drop['item_type'] == 'armor') {
+                                                            $itemUrl = "view_armor.php?id=" . $drop['itemId'];
+                                                        } elseif ($drop['item_type'] == 'weapon') {
+                                                            $itemUrl = "view_weapon.php?id=" . $drop['itemId'];
+                                                        }
+                                                        
+                                                        if (!empty($itemUrl)): 
+                                                        ?>
+                                                            <a href="<?php echo $itemUrl; ?>" class="text-decoration-none">
+                                                                <span><?php echo htmlspecialchars($drop['item_name']); ?></span>
+                                                                <small class="text-muted d-block">ID: <?php echo htmlspecialchars($drop['itemId']); ?></small>
+                                                            </a>
+                                                        <?php else: ?>
+                                                            <span><?php echo htmlspecialchars($drop['item_name']); ?></span>
+                                                            <small class="text-muted d-block">ID: <?php echo htmlspecialchars($drop['itemId']); ?></small>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <?php 
+                                                        if ($drop['min'] == $drop['max']) {
+                                                            echo htmlspecialchars($drop['min']);
+                                                        } else {
+                                                            echo htmlspecialchars($drop['min']) . '-' . htmlspecialchars($drop['max']);
+                                                        }
+                                                        ?>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <?php 
+                                                        $chance = floatval($drop['chance']);
+                                                        $badgeClass = 'bg-danger'; // Very low chance (red)
+                                                        
+                                                        if ($chance >= 80) {
+                                                            $badgeClass = 'bg-success'; // High chance (green)
+                                                        } elseif ($chance >= 40) {
+                                                            $badgeClass = 'bg-primary'; // Medium chance (blue)
+                                                        } elseif ($chance >= 10) {
+                                                            $badgeClass = 'bg-warning text-dark'; // Low chance (yellow)
+                                                        }
+                                                        ?>
+                                                        <span class="badge <?php echo $badgeClass; ?>">
+                                                            <?php echo htmlspecialchars($drop['chance']); ?>%
+                                                        </span>
+                                                    </td>
                                                 </tr>
-                                            <?php
-                                                endif;
-                                            }
-                                            
-                                            fclose($dropsFile);
-                                            ?>
+                                            <?php endwhile; ?>
                                         </tbody>
                                     </table>
                                 </div>
+                                <?php else: ?>
+                                    <div class="alert alert-info text-center">
+                                        <i class="bi bi-info-circle me-2"></i>No drop data available for this monster
+                                    </div>
+                                <?php endif; 
+                                
+                                // Close the statement
+                                $dropsStmt->close();
+                                ?>
                             </div>
                         </div>
                     </div>
@@ -159,17 +250,108 @@ if (isset($_GET['id'])) {
                     <div class="col-md-12">
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="mb-0">Locations</h5>
+                                <h5 class="mb-0">
+                                    <i class="bi bi-map me-2"></i>Locations
+                                </h5>
                             </div>
                             <div class="card-body">
-                                <!-- TODO: Implement location data display -->
-                                <p>Location data goes here</p>
+                                <?php
+                                // Fetch location data
+                                $locationQuery = "SELECT m.locationname, m.mapid, m.pngId
+                                                 FROM spawnlist s
+                                                 JOIN mapids m ON s.mapid = m.mapid
+                                                 WHERE s.npc_templateid = ?
+                                                 GROUP BY m.mapid
+                                                 ORDER BY m.locationname";
+                                
+                                $locationStmt = $conn->prepare($locationQuery);
+                                $locationStmt->bind_param('i', $monsterId);
+                                $locationStmt->execute();
+                                $locationResult = $locationStmt->get_result();
+                                
+                                if ($locationResult->num_rows > 0):
+                                ?>
+                                <div class="row">
+                                    <?php 
+                                    // Store the first location for the main map display
+                                    $firstLocation = null;
+                                    
+                                    while ($location = $locationResult->fetch_assoc()): 
+                                        // Save the first location for the map display
+                                        if ($firstLocation === null) {
+                                            $firstLocation = $location;
+                                        }
+                                        
+                                        $locationIcon = "icons/{$location['pngId']}.png";
+                                        $hasIcon = !empty($location['pngId']) && file_exists($locationIcon);
+                                    ?>
+                                    <div class="col-md-6 col-lg-4 mb-3">
+                                        <a href="view_location.php?id=<?php echo $location['mapid']; ?>" class="text-decoration-none">
+                                            <div class="card h-100 hover-effect">
+                                                <div class="card-body p-0">
+                                                    <div class="d-flex">
+                                                        <div style="width: 80px; height: 80px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: rgba(0,0,0,0.1);">
+                                                            <?php if ($hasIcon): ?>
+                                                                <img src="<?php echo $locationIcon; ?>" alt="Location" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                                            <?php else: ?>
+                                                                <i class="bi bi-map" style="font-size: 2rem; color: var(--text-secondary);"></i>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        <div class="p-3">
+                                                            <h6 class="mb-1"><?php echo htmlspecialchars($location['locationname']); ?></h6>
+                                                            <small class="text-muted">Map ID: <?php echo htmlspecialchars($location['mapid']); ?></small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                    <?php endwhile; 
+                                    
+                                    // Reset the result pointer to use it again if needed
+                                    $locationResult->data_seek(0);
+                                    ?>
+                                </div>
+                                
+                                <?php if ($firstLocation !== null && !empty($firstLocation['pngId'])):
+                                    $mapImagePath = "icons/{$firstLocation['pngId']}.png";
+                                    if (file_exists($mapImagePath)):
+                                ?>
+                                <!-- Map Image Box -->
+                                <div class="mt-4">
+                                    <div class="card map-card">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0">
+                                                <i class="bi bi-map-fill me-2"></i>Map View: <?php echo htmlspecialchars($firstLocation['locationname']); ?>
+                                            </h5>
+                                            <a href="view_location.php?id=<?php echo $firstLocation['mapid']; ?>" class="btn btn-sm btn-outline-primary">
+                                                View Location Details <i class="bi bi-arrow-right ms-1"></i>
+                                            </a>
+                                        </div>
+                                        <div class="card-body p-0 text-center" style="background-color: rgba(0,0,0,0.05);">
+                                            <img src="<?php echo $mapImagePath; ?>" alt="Map" class="img-fluid map-image" style="max-height: 500px;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php 
+                                    endif;
+                                endif;
+                                ?>
+                                
+                                <?php else: ?>
+                                    <div class="alert alert-info text-center">
+                                        <i class="bi bi-info-circle me-2"></i>No location data available for this monster
+                                    </div>
+                                <?php 
+                                endif;
+                                $locationStmt->close();
+                                ?>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="text-center">
+                <div class="text-center mb-4">
                     <a href="monster_list.php" class="btn btn-secondary">
                         <i class="bi bi-arrow-left me-2"></i>Back to Monster List
                     </a>
@@ -210,4 +392,25 @@ if (isset($_GET['id'])) {
 }
 
 include 'footer.php';
+
+// Add custom styles
 ?>
+<style>
+.hover-effect {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.hover-effect:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+.map-card {
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+.map-image {
+    transition: transform 0.3s ease;
+}
+.map-card:hover .map-image {
+    transform: scale(1.02);
+}
+</style>
