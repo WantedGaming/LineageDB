@@ -1,5 +1,5 @@
 <?php
-// login.php - Comprehensive Admin Login Page
+// login.php - Comprehensive Admin Login Page with Enhanced Design
 session_start();
 require_once 'database.php';
 require_once 'security_functions.php';
@@ -73,74 +73,84 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['login_error'] = "An unexpected error occurred. Please try again.";
     }
 }
+
+$page_title = "Admin Login";
+include 'header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-</head>
-<body>
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header text-center">
-                        <h2>
-                            <i class="bi bi-shield-lock me-2"></i>
-                            Admin Login
-                        </h2>
-                    </div>
-                    <div class="card-body">
-                        <?php 
-                        // Display login errors
-                        if (isset($_SESSION['login_error'])) {
-                            echo '<div class="alert alert-danger">' . 
-                                 htmlspecialchars($_SESSION['login_error']) . 
-                                 '</div>';
-                            unset($_SESSION['login_error']);
-                        }
-                        ?>
-                        <form method="post" action="">
-                            <div class="mb-3">
-                                <label for="username" class="form-label">Username</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                    <input type="text" class="form-control" id="username" name="username" required 
-                                           placeholder="Enter your username">
-                                </div>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h2 class="mb-0">
+                        <i class="bi bi-shield-lock me-2"></i>
+                        Admin Login
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <?php 
+                    // Display login errors
+                    if (isset($_SESSION['login_error'])) {
+                        echo '<div class="alert alert-danger">' . 
+                             htmlspecialchars($_SESSION['login_error']) . 
+                             '</div>';
+                        unset($_SESSION['login_error']);
+                    }
+                    ?>
+                    <form method="post" action="">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" id="username" name="username" required 
+                                       placeholder="Enter your username">
                             </div>
-                            
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                    <input type="password" class="form-control" id="password" name="password" required 
-                                           placeholder="Enter your password">
-                                </div>
-                            </div>
-                            
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-box-arrow-in-right me-2"></i>Login
-                                </button>
-                            </div>
-                        </form>
+                        </div>
                         
-                        <div class="text-center mt-3">
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" required 
+                                       placeholder="Enter your password">
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                            </button>
+                        </div>
+                        
+                        <div class="text-center">
                             <a href="password_reset.php" class="text-muted text-decoration-none">
                                 <i class="bi bi-shield-lock me-2"></i>Forgot Password?
                             </a>
                         </div>
+                    </form>
+                </div>
+                
+                <div class="card-footer text-center">
+                    <div class="d-flex justify-content-center gap-3 align-items-center">
+                        <a href="index.php" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-database me-2"></i>Return to Database
+                        </a>
+                        <small class="text-muted">
+                            Restricted Access: Admin Login Only
+                        </small>
                     </div>
                 </div>
             </div>
+
+            <div class="text-center mt-3">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Admin access is restricted to authorized personnel only.
+                </small>
+            </div>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<?php include 'footer.php'; ?>

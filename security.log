@@ -1,3 +1,9 @@
 2025-02-28 23:09:22 | LOGIN_FAILED | hiteshpat4@gmail.com | ::1 | Non-existent admin account or insufficient permissions
 2025-02-28 23:12:28 | LOGIN_SUCCESSFUL | hiteshpat4@gmail.com | ::1 | Admin login successful
 2025-03-01 08:15:54 | LOGOUT | hiteshpat4@gmail.com | ::1 | Admin logged out
+2025-03-01 10:15:40 | LOGIN_SUCCESSFUL | hiteshpat4@gmail.com | ::1 | Admin login successful
+2025-03-01 10:15:52 | LOGOUT | hiteshpat4@gmail.com | ::1 | Admin logged out
+2025-03-01 10:18:04 | LOGIN_SUCCESSFUL | hiteshpat4@gmail.com | ::1 | Admin login successful
+2025-03-01 10:18:12 | LOGOUT | hiteshpat4@gmail.com | ::1 | Admin logged out
+2025-03-01 10:20:32 | LOGIN_SUCCESSFUL | hiteshpat4@gmail.com | ::1 | Admin login successful
+2025-03-01 10:20:35 | LOGOUT | hiteshpat4@gmail.com | ::1 | Admin logged out
