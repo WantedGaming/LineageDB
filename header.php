@@ -198,48 +198,71 @@ require_once 'session.php';
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle <?php echo ($current_page == 'add_armor.php' || $current_page == 'add_weapon.php') ? 'active' : ''; ?>" href="#" id="addDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-plus-circle me-1"></i>Add
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="addDropdown">
-                            <li><a class="dropdown-item" href="add_armor.php">Armor</a></li>
-                            <li><a class="dropdown-item" href="add_weapon.php">Weapon</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="add_accessory.php">Accessory</a></li>
-                        </ul>
-						<ul class="navbar-nav ms-auto">
-    <?php if (isAdminLoggedIn()): ?>
-        <li class="nav-item">
-            <a class="nav-link" href="admin_dashboard.php">
-                <i class="bi bi-speedometer2 me-1"></i>Admin Dashboard
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="logout.php">
-                <i class="bi bi-box-arrow-right me-1"></i>Logout
-            </a>
-        </li>
-    <?php else: ?>
-        <li class="nav-item">
-            <a class="nav-link" href="login.php">
-                <i class="bi bi-box-arrow-in-right me-1"></i>Admin Login
-            </a>
-        </li>
-    <?php endif; ?>
-</ul>
-                    </li>
+    <ul class="navbar-nav me-auto">
+        <?php if (isAdminLoggedIn()): ?>
+            <!-- Only show Add dropdown to admin users -->
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle <?php echo ($current_page == 'add_armor.php' || $current_page == 'add_weapon.php') ? 'active' : ''; ?>" href="#" id="addDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-plus-circle me-1"></i>Add
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="addDropdown">
+                    <li><a class="dropdown-item" href="add_armor.php">Armor</a></li>
+                    <li><a class="dropdown-item" href="add_weapon.php">Weapon</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="add_accessory.php">Accessory</a></li>
                 </ul>
-                <form class="d-flex" action="index.php" method="get">
-                    <div class="input-group">
-                        <input class="form-control" type="search" name="search" placeholder="Search" aria-label="Search" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
-                        <button class="btn btn-outline-light" type="submit">
-                            <i class="bi bi-search"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
+            </li>
+        <?php endif; ?>
+        
+        <!-- Other navigation items that should always be visible -->
+        <li class="nav-item">
+            <a class="nav-link <?php echo ($current_page == 'armor_list.php') ? 'active' : ''; ?>" href="armor_list.php">
+                <i class="bi bi-shield me-1"></i>Armor
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?php echo ($current_page == 'weapon_list.php') ? 'active' : ''; ?>" href="weapon_list.php">
+                <i class="bi bi-sword me-1"></i>Weapons
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?php echo ($current_page == 'accessory_list.php') ? 'active' : ''; ?>" href="accessory_list.php">
+                <i class="bi bi-gem me-1"></i>Accessories
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?php echo ($current_page == 'locations_list.php') ? 'active' : ''; ?>" href="locations_list.php">
+                <i class="bi bi-map me-1"></i>Locations
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?php echo ($current_page == 'monster_list.php') ? 'active' : ''; ?>" href="monster_list.php">
+                <i class="bi bi-bug me-1"></i>Monsters
+            </a>
+        </li>
+    </ul>
+    
+    <ul class="navbar-nav ms-auto">
+        <?php if (isAdminLoggedIn()): ?>
+            <li class="nav-item">
+                <a class="nav-link" href="admin_dashboard.php">
+                    <i class="bi bi-speedometer2 me-1"></i>Admin Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="logout.php">
+                    <i class="bi bi-box-arrow-right me-1"></i>Logout
+                </a>
+            </li>
+        <?php else: ?>
+            <li class="nav-item">
+                <a class="nav-link" href="login.php">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>Admin Login
+                </a>
+            </li>
+        <?php endif; ?>
+    </ul>
+</div>
         </div>
     </nav>
     

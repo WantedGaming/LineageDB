@@ -192,15 +192,19 @@ try {
                 </div>
                 <div class="card-body text-center">
                     <?php if ($hasIcon): ?>
-                        <img src="<?php echo $iconPath; ?>" alt="Weapon Icon" class="img-fluid mb-3" style="max-width: 768px; max-height: 768px; width: auto; height: auto;">
+                        <div class="image-container" style="height: 300px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                            <img src="<?php echo $iconPath; ?>" alt="Weapon Icon" class="img-fluid" style="max-width: 100%; max-height: 300px; object-fit: contain;">
+                        </div>
                     <?php else: ?>
-                        <div class="no-icon text-muted mb-3" style="height: 400px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-image" style="font-size: 6rem;"></i>
-                            <p>No Icon Available</p>
+                        <div class="no-icon text-muted mb-3" style="height: 300px; display: flex; align-items: center; justify-content: center;">
+                            <div class="text-center">
+                                <i class="bi bi-image" style="font-size: 6rem;"></i>
+                                <p>No Icon Available</p>
+                            </div>
                         </div>
                     <?php endif; ?>
                     
-                    <h4 class="card-title grade-<?php echo htmlspecialchars($weapon['itemGrade']); ?>">
+                    <h4 class="card-title mt-3 grade-<?php echo htmlspecialchars($weapon['itemGrade']); ?>">
                         <?php echo htmlspecialchars($weapon['desc_en']); ?>
                     </h4>
                 </div>
@@ -365,20 +369,4 @@ try {
         <div class="alert alert-warning">
             Error retrieving drop information: <?php echo htmlspecialchars($e->getMessage()); ?>
         </div>
-        <?php
-    }
-    ?>
-    
-    <div class="text-center mt-4">
-        <a href="weapon_list.php" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-2"></i>Back to Weapon List
-        </a>
-    </div>
-</div>
-
-<?php 
-// Close main statement
-$stmt->close();
-
-include 'footer.php'; 
-?>
+        <?

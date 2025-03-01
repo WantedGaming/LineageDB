@@ -454,17 +454,19 @@ $classes = [
                 ?>
             </td>
             <td class="grade-<?php echo htmlspecialchars($row['itemGrade']); ?> px-3">
-                <?php echo htmlspecialchars($row['desc_en']); ?>
-                <!-- Add action buttons -->
-                <div class="float-end">
-                    <a href="edit_weapon.php?id=<?php echo $row['item_id']; ?>" class="btn btn-sm btn-outline-primary me-1" title="Edit">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-                    <a href="delete_weapon.php?id=<?php echo $row['item_id']; ?>" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this weapon item?');">
-                        <i class="bi bi-trash"></i>
-                    </a>
-                </div>
-            </td>
+    <?php echo htmlspecialchars($row['desc_en']); ?>
+    <!-- Add action buttons only if the user is logged in as admin -->
+    <?php if (isAdminLoggedIn()): ?>
+        <div class="float-end">
+            <a href="edit_weapon.php?id=<?php echo $row['item_id']; ?>" class="btn btn-sm btn-outline-primary me-1" title="Edit">
+                <i class="bi bi-pencil"></i>
+            </a>
+            <a href="delete_weapon.php?id=<?php echo $row['item_id']; ?>" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this weapon item?');">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    <?php endif; ?>
+</td>
             <td class="px-3"><?php echo htmlspecialchars($row['type']); ?></td>
             <td class="px-3"><?php echo htmlspecialchars($row['dmg_small']); ?> - <?php echo htmlspecialchars($row['dmg_large']); ?></td>
         </tr>

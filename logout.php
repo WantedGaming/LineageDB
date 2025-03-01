@@ -1,10 +1,13 @@
 <?php
 // logout.php - Logout script
-session_start();
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Log logout action if admin was logged in
 if (isset($_SESSION['admin_username'])) {
     require_once 'database.php';
+    require_once 'security_functions.php'; // Add this line to include the security functions
     securityLog('LOGOUT', $_SESSION['admin_username'], $_SERVER['REMOTE_ADDR'], 
                 "Admin logged out");
 }

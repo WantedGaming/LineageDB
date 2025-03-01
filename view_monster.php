@@ -29,19 +29,22 @@ if (isset($_GET['id'])) {
                             <div class="card-header">
                                 <h4 class="mb-0"><?php echo htmlspecialchars($monster['desc_en']); ?> (Level <?php echo htmlspecialchars($monster['lvl']); ?>)</h4>
                             </div>
-                            <div class="card-body text-center" style="height: 500px; background-color: rgba(0,0,0,0.05); padding: 0; display: flex; align-items: center; justify-content: center;">
+                            <div class="card-body text-center" style="padding: 0; display: flex; align-items: center; justify-content: center; background-color: rgba(0,0,0,0.05);">
                                 <?php
                                 $spritePath = "icons/ms{$monster['spriteId']}.png";
                                 if (file_exists($spritePath)):
                                 ?>
-                                    <img src="<?php echo $spritePath; ?>"
-                                         alt="Monster Sprite"
-                                         class="img-fluid"
-                                         style="max-width: 492px; max-height: 738px; width: auto; height: auto;">
+                                    <div class="sprite-container" style="height: 500px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <img src="<?php echo $spritePath; ?>"
+                                             alt="Monster Sprite"
+                                             style="max-width: 100%; max-height: 500px; object-fit: contain;">
+                                    </div>
                                 <?php else: ?>
-                                    <div style="height: 492px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="bi bi-image fs-1 text-muted" style="font-size: 6rem;"></i>
-                                        <p class="mt-3">No Sprite Available</p>
+                                    <div style="height: 500px; display: flex; align-items: center; justify-content: center;">
+                                        <div class="text-center">
+                                            <i class="bi bi-image fs-1 text-muted" style="font-size: 6rem;"></i>
+                                            <p class="mt-3">No Sprite Available</p>
+                                        </div>
                                     </div>
                                 <?php endif; ?>
                             </div>
@@ -174,7 +177,9 @@ if (isset($_GET['id'])) {
                                                         $iconPath = "icons/{$drop['iconId']}.png";
                                                         if (!empty($drop['iconId']) && file_exists($iconPath)):
                                                         ?>
-                                                            <img src="<?php echo $iconPath; ?>" alt="Item Icon" width="40" height="40" class="img-thumbnail">
+                                                            <div style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                                                <img src="<?php echo $iconPath; ?>" alt="Item Icon" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                                            </div>
                                                         <?php else: ?>
                                                             <div class="text-muted"><i class="bi bi-question-circle"></i></div>
                                                         <?php endif; ?>
@@ -328,7 +333,9 @@ if (isset($_GET['id'])) {
                                             </a>
                                         </div>
                                         <div class="card-body p-0 text-center" style="background-color: rgba(0,0,0,0.05);">
-                                            <img src="<?php echo $mapImagePath; ?>" alt="Map" class="img-fluid map-image" style="max-height: 500px;">
+                                            <div class="map-container" style="height: 500px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                                <img src="<?php echo $mapImagePath; ?>" alt="Map" class="map-image" style="max-width: 100%; max-height: 500px; object-fit: contain;">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

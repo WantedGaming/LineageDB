@@ -1,315 +1,213 @@
 <?php
 // view_location.php - Detailed view of a specific location
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 require_once 'database.php';
 
 // Page setup
 $page_title = "Location Details";
 include 'header.php';
 
-// Validate and sanitize input
-$mapId = isset($_GET['id']) ? intval($_GET['id']) : 0;
-
-// Debug logging
-error_log("Requested Map ID: " . $mapId);
-
-if ($mapId <= 0) {
-    ?>
-    <div class="container mt-4">
-        <div class="alert alert-danger">
-            Invalid Location ID. 
-            <?php 
-            // Additional debugging information
-            echo "Raw ID from GET: " . htmlspecialchars($_GET['id'] ?? 'No ID provided'); 
-            ?>
-        </div>
-    </div>
-    <?php
-    include 'footer.php';
-    exit();
-}
-
-try {
-    // Fetch total number of locations first
-    $totalLocationsQuery = "SELECT COUNT(*) as total FROM mapids";
-    $totalStmt = $conn->prepare($totalLocationsQuery);
-    $totalStmt->execute();
-    $totalResult = $totalStmt->get_result();
-    $totalLocations = $totalResult->fetch_assoc()['total'];
+// Check if location ID is provided
+if (isset($_GET['id'])) {
+    $locationId = intval($_GET['id']);
     
-    error_log("Total locations in database: " . $totalLocations);
+    try {
+        // Fetch location details 
+        $query = "SELECT * FROM mapids WHERE mapid = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param('i', $locationId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $location = $result->fetch_assoc();
+        
+        if ($location) {
+            // Fetch monsters spawning in this location
+            $monsterQuery = "SELECT DISTINCT n.npcid, n.desc_en, n.lvl, n.hp, n.spriteId
+                             FROM spawnlist s
+                             JOIN npc n ON s.npc_templateid = n.npcid
+                             WHERE s.mapid = ? AND n.impl = 'L1Monster'
+                             ORDER BY n.lvl DESC
+                             LIMIT 50";
+            $monsterStmt = $conn->prepare($monsterQuery);
+            $monsterStmt->bind_param("i", $locationId);
+            $monsterStmt->execute();
+            $monsterResult = $monsterStmt->get_result();
+            ?>
+            <div class="container mt-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h2 class="mb-0">
+                            <i class="bi bi-map me-2"></i>
+                            <?php echo htmlspecialchars($location['locationname'] ?: "Location " . $location['mapid']); ?>
+                        </h2>
+                        <?php if (!empty($location['dungeon']) && $location['dungeon'] == 1): ?>
+                            <span class="badge bg-warning">Dungeon</span>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Location Details</h5>
+                                <table class="table table-bordered">
+                                    <tbody>
+                                        <tr>
+                                            <th>Map ID</th>
+                                            <td><?php echo $location['mapid']; ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Coordinates</th>
+                                            <td>
+                                                X: <?php echo $location['startX'] . ' - ' . $location['endX']; ?><br>
+                                                Y: <?php echo $location['startY'] . ' - ' . $location['endY']; ?>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Monster Count</th>
+                                            <td><?php echo number_format($location['monster_amount'] ?? 0); ?></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h5>Location Properties</h5>
+                                <table class="table table-bordered">
+                                    <tbody>
+                                        <?php
+                                        $properties = [
+                                            'underwater' => 'Underwater',
+                                            'markable' => 'Markable',
+                                            'teleportable' => 'Teleportable',
+                                            'escapable' => 'Escapable',
+                                            'resurrection' => 'Resurrection Possible',
+                                            'take_pets' => 'Pets Allowed',
+                                            'recall_pets' => 'Pets Recallable'
+                                        ];
+                                        
+                                        foreach ($properties as $key => $label) {
+                                            $value = $location[$key] ?? 0;
+                                            ?>
+                                            <tr>
+                                                <th><?php echo $label; ?></th>
+                                                <td>
+                                                    <?php 
+                                                    echo match($value) {
+                                                        0 => '<span class="text-danger">No</span>',
+                                                        1 => '<span class="text-success">Yes</span>',
+                                                        default => htmlspecialchars($value)
+                                                    };
+                                                    ?>
+                                                </td>
+                                            </tr>
+                                            <?php
+                                        }
+                                        ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    // Fetch location details
-    $query = "SELECT * FROM mapids WHERE mapid = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("i", $mapId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    // Check if location exists
-    if ($result->num_rows === 0) {
-        ?>
-        <div class="container mt-4">
-            <div class="alert alert-warning">
-                No location found with ID <?php echo $mapId; ?>
-                <br>
-                Total locations in database: <?php echo $totalLocations; ?>
-                <br>
-                Available Map IDs range from 1 to <?php echo $totalLocations; ?>
-            </div>
-        </div>
-        <?php
-        include 'footer.php';
-        exit();
-    }
-
-    // Fetch location details
-    $location = $result->fetch_assoc();
-
-    // Prepare icon path
-    $iconPath = "icons/{$location['pngId']}.png";
-    $hasIcon = !empty($location['pngId']) && file_exists($iconPath);
-
-    // Boolean columns to display (with more descriptive names)
-    $booleanColumns = [
-        'underwater' => 'Underwater Access',
-        'markable' => 'Can Mark Location',
-        'teleportable' => 'Teleportation Allowed',
-        'escapable' => 'Can Escape',
-        'resurrection' => 'Resurrection Possible',
-        'painwand' => 'Painwand Usable',
-        'take_pets' => 'Pets Allowed',
-        'recall_pets' => 'Pets Can Be Recalled',
-        'usable_item' => 'Items Usable',
-        'usable_skill' => 'Skills Usable',
-        'dungeon' => 'Dungeon Location',
-    ];
-
-    // Fetch monsters spawning in this location with enhanced information
-    $monsterQuery = "SELECT DISTINCT n.npcid, n.desc_en, n.hp, n.mp, n.exp, n.lvl, n.spriteId, n.is_bossmonster
-                 FROM spawnlist s
-                 JOIN npc n ON s.npc_templateid = n.npcid
-                 WHERE s.mapid = ? AND n.impl = 'L1Monster'
-                 ORDER BY n.lvl DESC, n.is_bossmonster DESC, n.desc_en
-                 LIMIT 50";
-    $monsterStmt = $conn->prepare($monsterQuery);
-    $monsterStmt->bind_param("i", $mapId);
-    $monsterStmt->execute();
-    $monsterResult = $monsterStmt->get_result();
-
-} catch (Exception $e) {
-    ?>
-    <div class="container mt-4">
-        <div class="alert alert-danger">
-            Error: <?php echo htmlspecialchars($e->getMessage()); ?>
-        </div>
-    </div>
-    <?php
-    include 'footer.php';
-    exit();
-}
-?>
-
-<div class="container">
-    <div class="row">
-        <div class="col-md-9">
-            <div class="map-container mb-4" style="
-                background-color: rgba(255,255,255,0.05);
-                border: 2px solid var(--border-color);
-                border-radius: 12px;
-                padding: 15px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                overflow: hidden;
-            ">
-                <?php if ($hasIcon): ?>
-                    <img 
-                        src="<?php echo $iconPath; ?>" 
-                        alt="Location Icon" 
-                        class="img-fluid w-100" 
-                        style="
-                            max-height: 800px; 
-                            object-fit: contain; 
-                            border-radius: 8px;
-                            border: 1px solid rgba(255,255,255,0.1);
-                        "
-                    >
-                <?php else: ?>
-                    <div class="no-icon text-muted" style="
-                        height: 600px; 
-                        display: flex; 
-                        align-items: center; 
-                        justify-content: center; 
-                        background-color: rgba(255,255,255,0.1);
-                        border-radius: 8px;
-                    ">
-                        <div class="text-center">
-                            <i class="bi bi-image" style="font-size: 6rem;"></i>
-                            <p class="mt-3">No Icon Available</p>
+                <?php if ($monsterResult && $monsterResult->num_rows > 0): ?>
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-bug me-2"></i>Monsters in this Location
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="px-3">Icon</th>
+                                            <th class="px-3">Monster Name</th>
+                                            <th class="px-3">Level</th>
+                                            <th class="px-3">HP</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php while ($monster = $monsterResult->fetch_assoc()): ?>
+                                            <tr class="clickable-row" data-href="view_monster.php?id=<?php echo $monster['npcid']; ?>">
+                                                <td class="px-3 text-center">
+                                                    <?php 
+                                                    $monsterIconPath = "icons/ms{$monster['spriteId']}.png";
+                                                    if (file_exists($monsterIconPath)): 
+                                                    ?>
+                                                        <img src="<?php echo $monsterIconPath; ?>" 
+                                                             alt="Monster Icon" 
+                                                             width="36" 
+                                                             height="36" 
+                                                             class="img-thumbnail">
+                                                    <?php else: ?>
+                                                        <div class="text-muted" style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;">
+                                                            <i class="bi bi-question-circle"></i>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td class="px-3">
+                                                    <?php echo htmlspecialchars($monster['desc_en']); ?>
+                                                </td>
+                                                <td class="px-3"><?php echo htmlspecialchars($monster['lvl']); ?></td>
+                                                <td class="px-3"><?php echo number_format($monster['hp']); ?></td>
+                                            </tr>
+                                        <?php endwhile; ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 <?php endif; ?>
+                
+                <div class="text-center mt-4">
+                    <a href="locations_list.php" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Locations
+                    </a>
+                </div>
             </div>
-        </div>
+
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const rows = document.querySelectorAll('.clickable-row');
+                rows.forEach(row => {
+                    row.addEventListener('click', function() {
+                        window.location.href = this.dataset.href;
+                    });
+                    row.style.cursor = 'pointer';
+                });
+            });
+            </script>
+            <?php
+        } else {
+            // Location not found
+            ?>
+            <div class="container mt-4">
+                <div class="alert alert-warning">
+                    <strong>Location not found.</strong> The requested location does not exist.
+                </div>
+                <a href="locations_list.php" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Locations List
+                </a>
+            </div>
+            <?php
+        }
         
-        <div class="col-md-3">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Basic</h5>
-                </div>
-                <div class="card-body p-3">
-                    <table class="table table-sm table-borderless mb-0">
-                        <tr>
-                            <th class="ps-0">Map ID</th>
-                            <td class="text-end pe-0"><?php echo htmlspecialchars($location['mapid']); ?></td>
-                        </tr>
-                        <tr>
-                            <th class="ps-0">Location Name</th>
-                            <td class="text-end pe-0"><?php echo htmlspecialchars($location['locationname']); ?></td>
-                        </tr>
-                        <tr>
-                            <th class="ps-0">Coordinates</th>
-                            <td class="text-end pe-0">
-                                Start: (<?php echo htmlspecialchars($location['startX']) . ',' . htmlspecialchars($location['startY']); ?>)<br>
-                                End: (<?php echo htmlspecialchars($location['endX']) . ',' . htmlspecialchars($location['endY']); ?>)
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-			
-        </div>
-    </div>
-
-    <?php 
-    // Filter out attributes that are false
-    $activeAttributes = array_filter($booleanColumns, function($column) use ($location) {
-        return $location[$column] == 1;
-    }, ARRAY_FILTER_USE_KEY);
-
-    if (!empty($activeAttributes)): 
-    ?>
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Allowed</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <?php foreach ($activeAttributes as $column => $label): ?>
-                            <div class="col-md-4 mb-2">
-                                <div class="form-check">
-                                    <input 
-                                        class="form-check-input" 
-                                        type="checkbox" 
-                                        id="<?php echo $column; ?>" 
-                                        checked 
-                                        disabled
-                                    >
-                                    <label class="form-check-label" for="<?php echo $column; ?>">
-                                        <?php echo htmlspecialchars($label); ?>
-                                    </label>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
+    } catch (Exception $e) {
+        // Error handling 
+        ?>
+        <div class="container mt-4">
+            <div class="alert alert-danger">
+                <strong>Error:</strong> <?php echo htmlspecialchars($e->getMessage()); ?>
             </div>
         </div>
-    </div>
-    <?php endif; ?>
+        <?php
+    }
+} else {
+    // Redirect if location ID is not provided
+    header("Location: locations_list.php");
+    exit();
+}
 
-    <?php if ($monsterResult && $monsterResult->num_rows > 0): ?>
-    <div class="row">
-        <div class="col-12">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="bi bi-bug me-2"></i>Monsters
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th class="px-3" style="width: 60px">Icon</th>
-                                    <th class="px-3">Monster Name</th>
-                                    <th class="px-3 text-center">Level</th>
-                                    <th class="px-3 text-center">HP</th>
-                                    <th class="px-3 text-center">MP</th>
-                                    <th class="px-3 text-center">EXP</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php while ($monster = $monsterResult->fetch_assoc()): 
-                                    // Add boss indicator without changing row color
-                                    $isBoss = !empty($monster['is_bossmonster']) && $monster['is_bossmonster'] == 1;
-                                ?>
-                                    <tr class="clickable-row" data-href="view_monster.php?id=<?php echo $monster['npcid']; ?>">
-                                        <td class="px-3 text-center">
-                                            <?php 
-                                            $monsterIconPath = "icons/ms{$monster['spriteId']}.png";
-                                            if (file_exists($monsterIconPath)):
-                                            ?>
-                                                <img src="<?php echo $monsterIconPath; ?>" 
-                                                     alt="Monster Icon" 
-                                                     width="36" 
-                                                     height="36" 
-                                                     class="img-thumbnail">
-                                            <?php else: ?>
-                                                <div class="text-muted" style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;">
-                                                    <i class="bi bi-question-circle"></i>
-                                                </div>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="px-3">
-                                            <?php echo htmlspecialchars($monster['desc_en']); ?>
-                                            <?php if ($isBoss): ?>
-                                                <span class="badge bg-danger ms-1">Boss</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="px-3 text-center"><?php echo htmlspecialchars($monster['lvl']); ?></td>
-                                        <td class="px-3 text-center"><?php echo number_format($monster['hp']); ?></td>
-                                        <td class="px-3 text-center"><?php echo number_format($monster['mp']); ?></td>
-                                        <td class="px-3 text-center"><?php echo number_format($monster['exp']); ?></td>
-                                    </tr>
-                                <?php endwhile; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <?php endif; ?>
-    
-    <div class="text-center mt-4">
-        <a href="locations_list.php" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-2"></i>Back to Locations
-        </a>
-    </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const rows = document.querySelectorAll('.clickable-row');
-    rows.forEach(row => {
-        row.addEventListener('click', function() {
-            window.location.href = this.dataset.href;
-        });
-        row.style.cursor = 'pointer';
-    });
-});
-</script>
-
-<?php 
-// Close statements
-$stmt->close();
-$monsterStmt->close();
-$totalStmt->close();
-
-include 'footer.php'; 
+include 'footer.php';
 ?>

@@ -193,26 +193,26 @@ include 'header.php';
             </div>
         </div>
         
-        <!-- Dungeons Box -->
-        <div class="col-md-4 mb-4">
-            <div class="card h-100 border-dark category-card" data-href="#">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="bi bi-door-open" style="font-size: 3.5rem; color: var(--accent-color);"></i>
-                    </div>
-                    <h4 class="card-title mb-3">Dungeons</h4>
-                    <p class="card-text mb-4">Learn about instanced dungeons, rewards, boss fights and level requirements.</p>
-                    <a href="#" class="btn btn-dark d-flex justify-content-between align-items-center">
-                        <span>View Dungeons</span>
-                        <span class="badge bg-light text-dark rounded-pill ms-2">
-                            <?php echo getSafeCount($conn, 'dungeon'); ?>
-                        </span>
-                    </a>
-                </div>
+        <!-- Replace the Dungeons Box with Magic Doll Box -->
+<div class="col-md-4 mb-4">
+    <div class="card h-100 border-dark category-card" data-href="doll_list.php">
+        <div class="card-body text-center">
+            <div class="mb-3">
+                <i class="bi bi-robot" style="font-size: 3.5rem; color: var(--accent-color);"></i>
             </div>
+            <h4 class="card-title mb-3">Magic Dolls</h4>
+            <p class="card-text mb-4">Browse magic dolls that can be summoned to assist you in battle.</p>
+            <a href="doll_list.php" class="btn btn-dark d-flex justify-content-between align-items-center">
+                <span>View Magic Dolls</span>
+                <span class="badge bg-light text-dark rounded-pill ms-2">
+                    <?php echo getSafeCount($conn, 'npc', "impl = 'L1Doll'"); ?>
+                </span>
+            </a>
         </div>
+    </div>
+</div>
         
-        <!-- Monsters Box -->
+         <!-- Monsters Box -->
         <div class="col-md-4 mb-4">
             <div class="card h-100 border-warning category-card" data-href="monster_list.php">
                 <div class="card-body text-center">
@@ -228,10 +228,8 @@ include 'header.php';
                         </span>
                     </a>
                 </div>
-            </div>
-        </div>
     </div>
-
+</div>
     <!-- Game Items Categories -->
     <div class="row mt-4">
         <div class="col-12 mb-3">

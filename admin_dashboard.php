@@ -1,6 +1,9 @@
 <?php
 // admin_dashboard.php - Admin Dashboard
-session_start();
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once 'database.php';
 
 // Check if admin is logged in

@@ -1,106 +1,7 @@
 <?php
 // admin_users.php - Admin User Management
-session_start();
-require_once 'database.php';
-require_once 'crud_functions.php';
-
-// Require high-level admin access
-checkAdminPermission(200); // Super admin level
-
-// Handle user actions
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Create new admin user
-    if (isset($_POST['action']) && $_POST['action'] == 'create_user') {
-        try {
-            $username = sanitize($conn, $_POST['username']);
-            $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
-            $password = $_POST['password'];
-            $confirm_password = $_POST['confirm_password'];
-            $access_level = intval($_POST['access_level']);
-
-            // Validate inputs
-            $errors = [];
-            if (empty($username)) {
-                $errors[] = "Username is required.";
-            }
-            if (!$email) {
-                $errors[] = "Invalid email address.";
-            }
-            if (empty($password) || $password !== $confirm_password) {
-                $errors[] = "Passwords do not match.";
-            }
-            if ($access_level < 100) {
-                $errors[] = "Invalid access level.";
-            }
-
-            if (empty($errors)) {
-                // Check if username or email already exists
-                $checkQuery = "SELECT * FROM accounts WHERE login = ? OR email = ?";
-                $checkStmt = $conn->prepare($checkQuery);
-                $checkStmt->bind_param("ss", $username, $email);
-                $checkStmt->execute();
-                $result = $checkStmt->get_result();
-
-                if ($result->num_rows > 0) {
-                    $errors[] = "Username or email already exists.";
-                } else {
-                    // Hash password
-                    $hashed_password = password_hash($password, PASSWORD_ARGON2ID);
-
-                    // Insert new admin user
-                    $insertQuery = "INSERT INTO accounts (login, password, email, access_level, created_at) 
-                                    VALUES (?, ?, ?, ?, NOW())";
-                    $insertStmt = $conn->prepare($insertQuery);
-                    $insertStmt->bind_param("sssi", $username, $hashed_password, $email, $access_level);
-                    
-                    if ($insertStmt->execute()) {
-                        // Log admin creation
-                        securityLog('ADMIN_CREATED', $_SESSION['admin_username'], $_SERVER['REMOTE_ADDR'], 
-                                    "Created new admin user: {$username} with access level {$access_level}");
-                        
-                        $_SESSION['success_message'] = "Admin user created successfully!";
-                    } else {
-                        $errors[] = "Failed to create admin user.";
-                    }
-                }
-            }
-
-            if (!empty($errors)) {
-                $_SESSION['form_errors'] = $errors;
-            }
-        } catch (Exception $e) {
-            $_SESSION['error_message'] = "Error: " . $e->getMessage();
-        }
-    }
-
-    // Delete admin user
-    if (isset($_POST['action']) && $_POST['action'] == 'delete_user') {
-        try {
-            $user_id = intval($_POST['user_id']);
-            
-            // Prevent deleting the current user
-            if ($user_id == $_SESSION['admin_user_id']) {
-                throw new Exception("You cannot delete your own account.");
-            }
-
-            $deleteQuery = "DELETE FROM accounts WHERE item_id = ? AND access_level >= 100";
-            $deleteStmt = $conn->prepare($deleteQuery);
-            $deleteStmt->bind_param("i", $user_id);
-            
-            if ($deleteStmt->execute()) {
-                // Log admin deletion
-                securityLog('ADMIN_DELETED', $_SESSION['admin_username'], $_SERVER['REMOTE_ADDR'], 
-                            "Deleted admin user with ID: {$user_id}");
-                
-                $_SESSION['success_message'] = "Admin user deleted successfully!";
-            } else {
-                throw new Exception("Failed to delete admin user.");
-            }
-        } catch (Exception $e) {
-            $_SESSION['error_message'] = "Error: " . $e->getMessage();
-        }
-    }
-}
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
 
 // Fetch admin users
 $adminQuery = "SELECT item_id, login, email, access_level, created_at 
@@ -237,3 +138,104 @@ include 'header.php';
 </div>
 
 <?php include 'footer.php'; ?>
+
+require_once 'database.php';
+require_once 'crud_functions.php';
+
+// Require high-level admin access
+checkAdminPermission(200); // Super admin level
+
+// Handle user actions
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Create new admin user
+    if (isset($_POST['action']) && $_POST['action'] == 'create_user') {
+        try {
+            $username = sanitize($conn, $_POST['username']);
+            $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
+            $password = $_POST['password'];
+            $confirm_password = $_POST['confirm_password'];
+            $access_level = intval($_POST['access_level']);
+
+            // Validate inputs
+            $errors = [];
+            if (empty($username)) {
+                $errors[] = "Username is required.";
+            }
+            if (!$email) {
+                $errors[] = "Invalid email address.";
+            }
+            if (empty($password) || $password !== $confirm_password) {
+                $errors[] = "Passwords do not match.";
+            }
+            if ($access_level < 100) {
+                $errors[] = "Invalid access level.";
+            }
+
+            if (empty($errors)) {
+                // Check if username or email already exists
+                $checkQuery = "SELECT * FROM accounts WHERE login = ? OR email = ?";
+                $checkStmt = $conn->prepare($checkQuery);
+                $checkStmt->bind_param("ss", $username, $email);
+                $checkStmt->execute();
+                $result = $checkStmt->get_result();
+
+                if ($result->num_rows > 0) {
+                    $errors[] = "Username or email already exists.";
+                } else {
+                    // Hash password
+                    $hashed_password = password_hash($password, PASSWORD_ARGON2ID);
+
+                    // Insert new admin user
+                    $insertQuery = "INSERT INTO accounts (login, password, email, access_level, created_at) 
+                                    VALUES (?, ?, ?, ?, NOW())";
+                    $insertStmt = $conn->prepare($insertQuery);
+                    $insertStmt->bind_param("sssi", $username, $hashed_password, $email, $access_level);
+                    
+                    if ($insertStmt->execute()) {
+                        // Log admin creation
+                        securityLog('ADMIN_CREATED', $_SESSION['admin_username'], $_SERVER['REMOTE_ADDR'], 
+                                    "Created new admin user: {$username} with access level {$access_level}");
+                        
+                        $_SESSION['success_message'] = "Admin user created successfully!";
+                    } else {
+                        $errors[] = "Failed to create admin user.";
+                    }
+                }
+            }
+
+            if (!empty($errors)) {
+                $_SESSION['form_errors'] = $errors;
+            }
+        } catch (Exception $e) {
+            $_SESSION['error_message'] = "Error: " . $e->getMessage();
+        }
+    }
+
+    // Delete admin user
+    if (isset($_POST['action']) && $_POST['action'] == 'delete_user') {
+        try {
+            $user_id = intval($_POST['user_id']);
+            
+            // Prevent deleting the current user
+            if ($user_id == $_SESSION['admin_user_id']) {
+                throw new Exception("You cannot delete your own account.");
+            }
+
+            $deleteQuery = "DELETE FROM accounts WHERE item_id = ? AND access_level >= 100";
+            $deleteStmt = $conn->prepare($deleteQuery);
+            $deleteStmt->bind_param("i", $user_id);
+            
+            if ($deleteStmt->execute()) {
+                // Log admin deletion
+                securityLog('ADMIN_DELETED', $_SESSION['admin_username'], $_SERVER['REMOTE_ADDR'], 
+                            "Deleted admin user with ID: {$user_id}");
+                
+                $_SESSION['success_message'] = "Admin user deleted successfully!";
+            } else {
+                throw new Exception("Failed to delete admin user.");
+            }
+        } catch (Exception $e) {
+            $_SESSION['error_message'] = "Error: " . $e->getMessage();
+        }
+    }
+}

@@ -55,6 +55,11 @@ function disableFeatureForNonAdmins($message = "This feature is only available t
 function isAdminLoggedIn() {
     return isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
 }
+if (!function_exists('isAdminLoggedIn')) {
+    function isAdminLoggedIn() {
+        return isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true;
+    }
+}
 
 // Function to get current admin's access level
 function getCurrentAdminAccessLevel() {

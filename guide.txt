@@ -34,3 +34,11 @@ shop.sql
 
 skill_passive.sql
 - on_icon_id matches with png file in /icons folder
+
+magicdoll_info.sql
+- magic dolls are listed as itemId which matches the item_id in etcitem.sql
+- they are also listed in npc.sql table.  npcid should match itemid.
+- so in general 
+	in etcitem.sql table magic doll are item_id
+	in npc.sql table magic doll are npcid
+- we should be using the iconid from etcitem.sql to match the magic doll by item_id and itemid 
