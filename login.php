@@ -2,6 +2,7 @@
 // login.php - Comprehensive Admin Login Page
 session_start();
 require_once 'database.php';
+require_once 'security_functions.php';
 
 // Check if already logged in
 if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {

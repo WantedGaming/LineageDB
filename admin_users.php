@@ -162,7 +162,7 @@ include 'header.php';
                             <select class="form-select" id="access_level" name="access_level" required>
                                 <option value="100">Standard Admin (100)</option>
                                 <option value="200">Super Admin (200)</option>
-                                <option value="250">System Administrator (250)</option>
+                                <option value="9999">System Administrator (250)</option>
                             </select>
                         </div>
                         

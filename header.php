@@ -1,8 +1,12 @@
 <?php
-// header.php - Common header and navigation for all pages
+// Inside the header.php file
 
-// Determine current page for active nav highlighting
-$current_page = basename($_SERVER['PHP_SELF']);
+// Include the necessary files
+require_once 'database.php';
+require_once 'crud_functions.php';
+require_once 'session.php';
+
+// ...
 ?>
 
 <!DOCTYPE html>
@@ -205,6 +209,26 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="add_accessory.php">Accessory</a></li>
                         </ul>
+						<ul class="navbar-nav ms-auto">
+    <?php if (isAdminLoggedIn()): ?>
+        <li class="nav-item">
+            <a class="nav-link" href="admin_dashboard.php">
+                <i class="bi bi-speedometer2 me-1"></i>Admin Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="logout.php">
+                <i class="bi bi-box-arrow-right me-1"></i>Logout
+            </a>
+        </li>
+    <?php else: ?>
+        <li class="nav-item">
+            <a class="nav-link" href="login.php">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Admin Login
+            </a>
+        </li>
+    <?php endif; ?>
+</ul>
                     </li>
                 </ul>
                 <form class="d-flex" action="index.php" method="get">
