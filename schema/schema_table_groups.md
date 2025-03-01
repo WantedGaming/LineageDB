@@ -1,94 +1,82 @@
 # LineageDB Table Groups
 
-This document categorizes database tables by functional game systems to help developers locate relevant tables quickly.
+This document categorizes database tables by Lineage game systems.
 
-## Account Management
+## Account System
 
-- **accounts** - User account information
-- **account_ban** - Account ban records
-- **account_privileges** - Special account permissions
-- **login_history** - User login tracking
+- **accounts** - Player account credentials
+- **account_data** - Additional account properties
+- **account_premium** - Premium/subscription status
+- **account_punishment** - Bans and penalties
+- **login_history** - Login timestamps and IPs
 
 ## Character System
 
 - **characters** - Core character data
-- **character_stats** - Character statistics (STR, DEX, etc.)
-- **character_appearance** - Visual attributes of characters
-- **character_location** - Current world position
-- **character_effects** - Active buffs and debuffs
-- **character_titles** - Earned character titles
+- **char_templates** - Base stats by race/class
+- **char_stats** - Attributes (STR, DEX, CON, INT, WIT, MEN)
+- **character_skills** - Character abilities and magic
+- **character_items** - Character equipment and inventory
+- **character_subclasses** - Dual class information
+- **character_hennas** - Applied henna tattoos
+- **character_quests** - Quest progress
+- **character_friends** - Friend list
+- **character_shortcuts** - UI shortcut configurations
+- **character_recipebook** - Known crafting recipes
+- **character_macroses** - Custom macro settings
+- **character_tpbookmark** - Teleport bookmarks
 
-## Inventory System
+## Class System
 
-- **items** - Master item definitions
-- **item_templates** - Base item properties
-- **inventory** - Character inventory
-- **item_attributes** - Special item properties
-- **item_enchants** - Item enhancement details
-- **item_skins** - Visual appearances for items
-- **storage** - Warehouse/storage items
+- **class_list** - Character classes (Human Fighter, Elven Mage, etc.)
+- **subclass_requirements** - Requirements for subclasses
+- **skill_trees** - Class-specific skill progression
+- **transform_skill_trees** - Skills for transformation states
 
-## Combat System
+## Castle & Territory System
 
-- **skills** - Skill definitions
-- **character_skills** - Skills known by characters
-- **skill_trees** - Skill progression hierarchies
-- **skill_effects** - Effects produced by skills
-- **combat_logs** - Records of combat interactions
+- **castle** - Castle information
+- **castle_functions** - Active castle functions
+- **castle_doorupgrade** - Door enhancement levels
+- **castle_siege_guards** - NPC guard data
+- **castle_manor_production** - Seed production in castle territory
+- **castle_manor_procure** - Crop procurement data
+- **territory_registrations** - Territory ownership
+- **territory_ward_locations** - Territory ward spawns
 
-## Social Systems
+## Clan System
 
-- **friends** - Character relationships
-- **clans** - Clan/guild data
-- **clan_members** - Clan membership
-- **clan_privileges** - Clan rank permissions
-- **alliances** - Relationships between clans
-- **mail** - Mail/message system
+- **clan_data** - Clan basic information
+- **clan_subpledges** - Clan squads/divisions
+- **clan_privs** - Clan member permissions
+- **clan_skills** - Clan abilities
+- **clan_wars** - Active clan conflicts
+- **clan_notices** - Announcements to members
+- **clan_halls** - Clan hall ownership
 
-## Economy & Trade
+## Item System
 
-- **shops** - NPC shop definitions
-- **shop_items** - Items available in shops
-- **market_listings** - Player market/auction items
-- **trade_logs** - Records of item exchanges
-- **price_history** - Historical item values
+- **item_templates** - Master item definitions
+- **armor** - Armor-specific properties
+- **weapon** - Weapon-specific properties
+- **etcitem** - Miscellaneous item properties
+- **items_enchant_stats** - Stats for enchanted items
+- **item_attributes** - Element attributes
+- **augmentations** - Item augment effects
+- **crystalization_recipes** - Item breakdown recipes
 
-## World & Environment
+## World System
 
-- **zones** - World map zones/regions
-- **spawn_points** - NPC and monster spawn locations
-- **teleport_locations** - Fast travel points
-- **world_objects** - Interactive objects in world
-- **weather_states** - Environmental conditions
-
-## Quest System
-
-- **quests** - Quest definitions
-- **quest_steps** - Sequential quest objectives
-- **character_quests** - Character quest progress
-- **quest_rewards** - Items/experience gained from quests
-- **quest_prerequisites** - Requirements to start quests
-
-## NPC System
-
-- **npcs** - Non-player character definitions
-- **npc_drops** - Items dropped by NPCs
-- **npc_dialogues** - Conversation trees
-- **npc_shops** - Merchants and their inventories
-- **npc_spawns** - Spawn locations and timers
-
-## Game Events
-
-- **events** - Special game events
-- **event_rewards** - Items/bonuses from events
-- **event_participation** - Player participation tracking
-
-## System & Administration
-
-- **server_config** - Global server settings
-- **game_logs** - System event logging
-- **admin_commands** - Administrative action history
-- **maintenance_schedule** - Planned downtimes
+- **zone** - World region definitions
+- **spawnlist** - NPC and monster spawn points
+- **npc** - Non-player character templates
+- **droplist** - Monster drops
+- **merchant_buylists** - NPC shop inventories
+- **teleport_locations** - Teleport destinations
+- **random_spawn** - Random monster spawns
+- **seven_signs** - Seven Signs festival data
+- **olympiad_data** - PvP tournament system
+- **siege_clans** - Clans participating in sieges
 
 ## Note
-Some tables may belong to multiple functional groups but are listed in their primary category.
+This grouping is specific to Lineage game mechanics. Tables may interact across groups.

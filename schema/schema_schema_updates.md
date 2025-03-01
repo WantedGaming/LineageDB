@@ -1,34 +1,49 @@
 # LineageDB Schema Update Log
 
-This document tracks changes made to the database schema over time. When making schema changes, please add an entry at the top of this file.
+This document tracks changes to the database schema over time. When making schema changes, add entries at the top of this file.
 
 ## Updates
 
-### 2025-03-01
-- Initial documentation of existing schema
-- Created database diagrams in SVG and JPEG formats
+### 2025-03-01 20:05:07 UTC
+- Initial documentation of existing Lineage database schema
+- Created database diagrams (SVG and JPEG formats)
 - Established documentation structure
+- Updated by: WantedGaming
 
 ### [TEMPLATE FOR FUTURE UPDATES]
-### YYYY-MM-DD
-- Brief description of changes
+### YYYY-MM-DD HH:MM:SS UTC
+- Description of changes
 - Tables affected
-- Migration scripts created (if applicable)
+- Migration scripts created
 - Updated by: [Name]
 
-## Migration Procedures
+## Common Update Types
 
-When making schema changes, follow these steps:
-1. Document the change in this file
-2. Update the schema diagrams
-3. Update affected documentation files
-4. Create migration scripts if necessary
-5. Test migration thoroughly before deployment
+### Patch Updates
+- New items: Add rows to item_templates
+- New NPCs: Add rows to npc table
+- Balance changes: Update stats in appropriate tables
+- New quests: Add entries to quest-related tables
 
-## Backup Recommendations
+### Major Updates
+- New features: May require new tables or columns
+- Class revisions: Updates to skill_trees and related tables
+- Economic changes: Updates to droplist and merchant tables
+- Territory system changes: Updates to castle and territory tables
 
-Before applying schema changes to production:
-1. Create a complete database backup
-2. Test migration on staging environment
-3. Verify application functionality after migration
-4. Schedule maintenance window for production updates
+## Migration Guidelines
+
+When implementing schema changes:
+1. Document changes thoroughly in this file
+2. Create SQL migration scripts in the migrations folder
+3. Test migration on development environment
+4. Backup live database before applying changes
+5. Consider impact on connected systems (e.g., login server)
+
+## Server Compatibility
+
+When making changes, note which server versions are compatible:
+- Interlude: Original schema design
+- High Five: Added vitality system tables
+- Goddess of Destruction: Major skill system changes
+- Helios: Latest structure with instance system changes

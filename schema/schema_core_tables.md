@@ -1,142 +1,182 @@
 # LineageDB Core Tables Reference
 
-This document provides detailed information about the most critical tables in the database schema.
+This document details the most critical tables in the Lineage database schema.
 
 ## accounts
 
-Central user account storage.
+User authentication and management.
 
 | Column | Type | Description |
 |--------|------|-------------|
-| account_id | INT | Primary key |
-| username | VARCHAR(45) | Account login name |
+| login | VARCHAR(45) | Primary key, account name |
 | password | VARCHAR(75) | Encrypted password |
-| email | VARCHAR(100) | User email address |
-| access_level | TINYINT | Permission level (0=player, >0=staff) |
-| last_login | DATETIME | Most recent login timestamp |
-| created_at | DATETIME | Account creation date |
-| status | TINYINT | Account status (0=active, 1=banned, etc.) |
+| email | VARCHAR(100) | Contact email |
+| created_time | INT | Account creation timestamp |
+| lastactive | INT | Last login timestamp |
+| accessLevel | INT | Admin rights (0=player, >0=staff) |
+| lastIP | VARCHAR(20) | Last login IP address |
+| lastServer | INT | Last connected game server |
+| pcIp | VARCHAR(20) | PC cafe IP address (if applicable) |
+| hop1 | VARCHAR(20) | Connection routing data |
+| hop2 | VARCHAR(20) | Connection routing data |
+| hop3 | VARCHAR(20) | Connection routing data |
+| hop4 | VARCHAR(20) | Connection routing data |
 
 **Notes:**
-- Username is unique and case-insensitive
-- Multiple characters can be associated with one account
-- Access levels determine administrative capabilities
+- Primary login credentials for game access
+- Access level determines GM/Admin capabilities
 
 ## characters
 
-Player character information.
+Player characters.
 
 | Column | Type | Description |
 |--------|------|-------------|
-| char_id | INT | Primary key |
-| account_id | INT | Associated account |
+| charId | INT | Primary key |
+| account_name | VARCHAR(45) | Associated account |
 | char_name | VARCHAR(35) | Character name |
-| race | TINYINT | Character race ID |
-| class_id | TINYINT | Character class ID |
-| sex | TINYINT | Gender (0=male, 1=female) |
 | level | INT | Character level |
-| exp | BIGINT | Experience points |
-| hp | INT | Current hit points |
-| max_hp | INT | Maximum hit points |
-| mp | INT | Current mana points |
-| max_mp | INT | Maximum mana points |
-| sp | INT | Spell points |
-| karma | INT | Alignment value |
-| face | TINYINT | Facial appearance ID |
-| hair_style | TINYINT | Hair style ID |
-| hair_color | TINYINT | Hair color ID |
-| x | INT | X coordinate in world |
-| y | INT | Y coordinate in world |
-| z | INT | Z coordinate in world |
+| maxHp | INT | Maximum hit points |
+| curHp | INT | Current hit points |
+| maxCp | INT | Maximum CP (Combat Points) |
+| curCp | INT | Current CP |
+| maxMp | INT | Maximum mana points |
+| curMp | INT | Current mana points |
+| face | INT | Facial appearance |
+| hairStyle | INT | Hair style ID |
+| hairColor | INT | Hair color ID |
+| sex | INT | Gender (0=male, 1=female) |
 | heading | INT | Direction facing |
-| delete_time | DATETIME | Scheduled deletion date (NULL if active) |
-| created_at | DATETIME | Character creation date |
+| x | INT | X coordinate |
+| y | INT | Y coordinate |
+| z | INT | Z coordinate |
+| exp | BIGINT | Experience points |
+| sp | INT | Skill points |
+| karma | INT | Karma/PK counter |
+| pvpkills | INT | PvP kill count |
+| pkkills | INT | Player kill count |
+| clanid | INT | Clan ID |
+| race | INT | Character race |
+| classid | INT | Character class |
+| base_class | INT | Original class before subclass |
+| title | VARCHAR(50) | Character title |
+| online | TINYINT | Online status |
+| onlinetime | INT | Total time played |
+| nobless | TINYINT | Noblesse status |
+| power_grade | INT | Clan power level |
+| subpledge | INT | Clan subgroup |
+| last_recom_date | BIGINT | Last recommendation date |
+| vitality_points | INT | Vitality system points |
 
 **Notes:**
-- char_name is unique across all characters
-- Foreign key to accounts table via account_id
-- Location coordinates (x,y,z) represent last saved position
+- Core character data including location and stats
+- Links to numerous related tables for skills, items, etc.
+- classid refers to specific profession (Knight, Wizard, etc.)
 
 ## items
 
-Master item definitions.
+Character-owned items.
 
 | Column | Type | Description |
 |--------|------|-------------|
-| item_id | INT | Primary key |
-| name | VARCHAR(100) | Item name |
-| type | TINYINT | Item category (weapon, armor, etc.) |
-| weight | INT | Item weight affecting inventory capacity |
-| grade | TINYINT | Item quality/tier |
-| is_tradable | TINYINT(1) | Whether item can be traded (0=no, 1=yes) |
-| is_dropable | TINYINT(1) | Whether item can be dropped (0=no, 1=yes) |
-| is_destroyable | TINYINT(1) | Whether item can be destroyed (0=no, 1=yes) |
-| is_stackable | TINYINT(1) | Whether item can be stacked (0=no, 1=yes) |
-| icon | VARCHAR(100) | UI icon path |
-| description | TEXT | Item description |
+| object_id | INT | Primary key, unique item instance |
+| owner_id | INT | Character ID of owner |
+| item_id | INT | Reference to item_templates |
+| count | BIGINT | Stack quantity |
+| enchant_level | INT | Enchantment level |
+| loc | VARCHAR(10) | Location code (INVENTORY, PAPERDOLL, WAREHOUSE, etc.) |
+| loc_data | INT | Slot position within location |
+| time_of_use | INT | Timestamp for timed items |
+| custom_type1 | INT | Special flag 1 |
+| custom_type2 | INT | Special flag 2 |
+| mana_left | INT | Remaining mana in item |
+| attr_type | INT | Attribute type |
+| attr_value | INT | Attribute value |
 
 **Notes:**
-- Reference table for all game items
-- Extended by type-specific tables (weapons, armor, etc.)
-- Used in inventory, shop, and drop tables
+- Represents actual item instances owned by characters
+- Different from item_templates which defines base items
+- loc determines if equipped, in inventory, or stored
 
-## inventory
+## clan_data
 
-Character inventory contents.
+Clan information.
 
 | Column | Type | Description |
 |--------|------|-------------|
-| inventory_id | INT | Primary key |
-| char_id | INT | Character owning the item |
-| item_id | INT | Reference to items table |
-| count | INT | Quantity of stackable items |
-| loc | TINYINT | Equipment slot or inventory position |
-| object_id | INT | Unique instance ID for this specific item |
-| enchant_level | TINYINT | Enhancement level |
-| custom_type1 | INT | Custom attribute 1 |
-| custom_type2 | INT | Custom attribute 2 |
+| clan_id | INT | Primary key |
+| clan_name | VARCHAR(45) | Clan name |
+| clan_level | INT | Clan level |
+| reputation_score | INT | Clan reputation |
+| hasCastle | INT | Castle owned (0=none or castle ID) |
+| blood_alliance_count | INT | Alliance items count |
+| blood_oath_count | INT | Oath items count |
+| ally_id | INT | Ally clan ID |
+| ally_name | VARCHAR(45) | Ally clan name |
+| leader_id | INT | Character ID of clan leader |
+| crest_id | INT | Clan crest graphic ID |
+| crest_large_id | INT | Large clan crest ID |
+| ally_crest_id | INT | Alliance crest ID |
+| new_leader_id | INT | Pending leader ID for transfers |
 
 **Notes:**
-- Foreign keys to characters and items tables
-- loc determines if item is equipped or in inventory
-- object_id is unique for each item instance
+- Core clan data linking to multiple clan-related tables
+- Tracks castles, reputation, and alliances
+- Connects to characters via clan_id field
 
-## skills
+## skill_trees
 
-Available skills in the game.
+Class-specific skill progression.
 
 | Column | Type | Description |
 |--------|------|-------------|
-| skill_id | INT | Primary key |
+| class_id | INT | Character class ID |
+| skill_id | INT | Skill identifier |
+| level | INT | Skill level |
 | name | VARCHAR(40) | Skill name |
-| level | TINYINT | Skill level |
-| sp_cost | INT | Mana/spell points cost |
-| hp_cost | INT | Hit points cost |
-| mp_cost | INT | Mana points cost |
-| cast_range | INT | Maximum distance for targeting |
-| hit_time | INT | Casting time in milliseconds |
-| reuse_delay | INT | Cooldown time in milliseconds |
-| buff_duration | INT | Effect duration for buffs |
-| description | TEXT | Skill description |
+| sp | INT | Skill points required |
+| min_level | INT | Min character level to learn |
+| reuse_delay | INT | Cooldown time |
+| is_residencial | TINYINT | Castle/residence skill flag |
 
 **Notes:**
-- Core reference table for all skills
-- Linked to characters via character_skills table
-- Multiple levels of the same skill use same base skill_id
+- Defines which skills are available to each class
+- Used for skill training and progression
+- Different from character_skills which tracks learned skills
 
-## character_skills
+## npc
 
-Skills known by characters.
+NPC templates.
 
 | Column | Type | Description |
 |--------|------|-------------|
-| char_id | INT | Character ID |
-| skill_id | INT | Skill ID |
-| skill_level | TINYINT | Current skill level |
-| is_passive | TINYINT(1) | Whether skill is passive |
-| reuse_time_remaining | INT | Remaining cooldown time |
+| id | INT | Primary key, NPC ID |
+| name | VARCHAR(200) | NPC name |
+| title | VARCHAR(100) | NPC title |
+| class | VARCHAR(200) | NPC classification |
+| collision_radius | DECIMAL(6,2) | Collision detection radius |
+| collision_height | DECIMAL(6,2) | Collision detection height |
+| level | TINYINT | NPC level |
+| sex | VARCHAR(6) | Gender |
+| type | VARCHAR(22) | NPC type (L2Monster, L2Merchant, etc.) |
+| attackrange | INT | Attack distance |
+| hp | INT | Hit points |
+| mp | INT | Mana points |
+| hpreg | DECIMAL(8,2) | HP regeneration rate |
+| mpreg | DECIMAL(8,2) | MP regeneration rate |
+| str | TINYINT | Strength stat |
+| con | TINYINT | Constitution stat |
+| dex | TINYINT | Dexterity stat |
+| int | TINYINT | Intelligence stat |
+| wit | TINYINT | Wit stat |
+| men | TINYINT | Mental stat |
+| exp | INT | Experience given |
+| sp | INT | Skill points given |
+| aggro | TINYINT | Aggression range |
+| clan | VARCHAR(100) | NPC clan/group |
+| absorb_level | TINYINT | Soul crystal absorption ability |
 
 **Notes:**
-- Composite primary key on char_id and skill_id
-- Foreign keys to characters and skills tables
-- Tracks individual character progression in skills
+- Template data for all NPCs, monsters, and bosses
+- Actual spawns reference this table
+- Base stats scale with level

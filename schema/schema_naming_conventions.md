@@ -1,58 +1,64 @@
 # LineageDB Naming Conventions
 
-This document outlines the naming patterns and conventions used throughout the LineageDB schema.
+This document outlines the naming patterns used throughout the Lineage database schema.
 
-## Table Naming
+## Table Naming Conventions
 
-- **Singular nouns** for entity tables (e.g., `character`, not `characters`)
-- **Plural nouns** for lookup/reference tables (e.g., `items`, `skills`)
-- **Underscore_separated** words for multi-word table names
-- **Junction tables** named by combining related tables with underscore (e.g., `character_skills`)
+- **Singular form** for main entity tables (e.g., `character`, `item`)
+- **Plural form** for list tables (e.g., `items` for character-owned items)
+- **Underscore separator** for multi-word table names (e.g., `castle_manor_procure`)
+- **Junction tables** use main tables with underscore (e.g., `character_skills`)
+- **System tables** often prefixed with system name (e.g., `olympiad_nobles`)
 
-## Column Naming
+## Column Naming Conventions
 
-- **Primary keys**: Generally named as `id` or `table_name_id`
-- **Foreign keys**: Named as `referenced_table_singular_id` (e.g., `character_id`)
-- **Boolean fields**: Prefixed with `is_`, `has_`, or `can_` (e.g., `is_active`, `has_subscription`)
-- **Date/time fields**: Suffixed with `_at` for points in time (e.g., `created_at`) or `_date` for calendar dates
-- **Enumerated types**: Suffixed with `_type` or `_status` (e.g., `account_status`)
+- **camelCase** for most column names (e.g., `charId`, `maxHp`)
+- **Primary keys** typically named with entity + 'Id' (e.g., `charId`, `clanId`)
+- **Foreign keys** match the primary key name in source table (e.g., `charId` in related tables)
+- **Boolean columns** often stored as TINYINT (e.g., `online`, `nobless`)
+- **Status columns** typically use numerical codes rather than text
 
-## Data Types and Sizes
+## Lineage-Specific Naming Patterns
 
-- **TINYINT(1)** used for boolean values (0=false, 1=true)
-- **VARCHAR** lengths standardized:
-  - Usernames: 45 characters
-  - Passwords: 75 characters (for hashed values)
-  - Names: 35 characters
-  - Email addresses: 100 characters
-- **INT** used for IDs and numeric values with standard ranges
-- **BIGINT** for experience points and other potentially large numeric values
-- **DECIMAL(M,N)** for currency and precise numeric values
+- **Character stats**: Uses standard D&D abbreviations (STR, CON, DEX, INT, WIT, MEN)
+- **Resources**: `curHp`/`maxHp`, `curMp`/`maxMp`, `curCp`/`maxCp`
+- **Coordinates**: Always `x`, `y`, `z` for world positioning
+- **Online status**: `online` (0=offline, 1=online)
+- **Special statuses**: `nobless`, `hero` as TINYINT flags
+- **Location codes**: 
+  - `PAPERDOLL` - Equipped items
+  - `INVENTORY` - Regular inventory
+  - `WAREHOUSE` - Personal storage
+  - `CLANWH` - Clan warehouse
+  - `PET` - Pet inventory
 
-## Indexes
+## Data Type Conventions
 
-- **Primary keys**: Named as `pk_table_name`
-- **Foreign keys**: Named as `fk_table_name_referenced_table`
-- **Unique constraints**: Named as `uk_table_name_column_name`
-- **Normal indexes**: Named as `idx_table_name_column_name`
+- **Character names**: VARCHAR(35)
+- **Account names**: VARCHAR(45)
+- **Level values**: INT (despite small range, for consistency)
+- **Status flags**: TINYINT (0=off, 1=on)
+- **Timestamps**: INT (Unix timestamp format)
+- **Currency/large numbers**: BIGINT
 
-## Common Prefixes/Suffixes
+## Index Naming
 
-- **tmp_**: Temporary tables
-- **log_**: Logging tables
-- **_history**: Tables tracking historical changes
-- **_archive**: Tables containing archived/old data
-- **_config**: Configuration tables
+Indexes typically follow these patterns:
+- Primary keys: `PRIMARY`
+- Unique indexes: `key_<column_name>` or `<table>_<column>_unique`
+- Foreign keys: Often not explicitly named in schema
 
-## Game-Specific Conventions
+## Legacy Patterns
 
-- **Character locations**: Use x, y, z coordinates consistently
-- **Status effects**: Use begin_time and end_time for duration
-- **Stackable items**: Use count field for quantity
-- **Equipment**: Use standardized slot IDs in loc field
+The Lineage database has evolved over many versions. You may encounter:
+- Inconsistent capitalization between tables
+- Mixed naming conventions from different development periods
+- Some redundant or deprecated tables kept for compatibility
 
-## Notes
+## Extending the Schema
 
-- These conventions should be followed for all new tables and columns
-- Legacy naming patterns may exist in some tables
-- When extending the schema, match the existing pattern of related tables
+When adding new tables or columns:
+- Follow the convention of related/similar tables
+- Use camelCase for new columns for consistency
+- Add appropriate indexes for frequently queried fields
+- Document new tables in the appropriate table groups file
