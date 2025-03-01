@@ -39,15 +39,28 @@ if (!empty($searchTerm)) {
     $types .= 'ss';
 }
 
-// Count total filtered results
-$countQuery = str_replace('n.npcid, n.desc_en, mi.name, mi.grade, n.spriteId, ei.iconid', 'COUNT(*) as total', $query);
+// Count total filtered results - FIX: Make sure we get a 'total' in the result
+$countQuery = "SELECT COUNT(*) as total FROM npc n 
+               JOIN magicdoll_info mi ON n.npcid = mi.dollNpcId
+               WHERE n.impl = 'L1Doll'";
+
+// Add the same filters to the count query
+if ($gradeFilter !== null) {
+    $countQuery .= " AND mi.grade = ?";
+}
+
+if (!empty($searchTerm)) {
+    $countQuery .= " AND (n.desc_en LIKE ? OR mi.name LIKE ?)";
+}
+
 $countStmt = $conn->prepare($countQuery);
 if (!empty($params)) {
     $countStmt->bind_param($types, ...$params);
 }
 $countStmt->execute();
 $totalResult = $countStmt->get_result();
-$totalRows = $totalResult->fetch_assoc()['total'];
+$totalRow = $totalResult->fetch_assoc();
+$totalRows = $totalRow['total']; // FIX: Now we get the 'total' value safely
 $totalPages = ceil($totalRows / $itemsPerPage);
 
 // Add pagination to main query
