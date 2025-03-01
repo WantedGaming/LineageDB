@@ -245,7 +245,7 @@ include 'header.php';
                     </h5>
                 </div>
                 <div class="list-group list-group-flush">
-                    <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <a href="polymorph_list.php" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                         <span>
                             <i class="bi bi-journal me-2"></i>Polymorphs
                         </span>
