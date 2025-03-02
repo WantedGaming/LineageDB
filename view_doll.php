@@ -459,7 +459,76 @@ if (isset($_GET['id'])) {
                         <?php endif; ?>
                     </div>
                 </div>
-                
+                <?php
+// Fetch similar dolls with icon information
+$similarDollsQuery = "SELECT n.npcid, n.desc_en, n.spriteId, 
+                             mi.grade, 
+                             e.iconid
+                      FROM npc n
+                      JOIN magicdoll_info mi ON n.npcid = mi.dollNpcId
+                      LEFT JOIN etcitem e ON mi.itemId = e.item_id
+                      WHERE mi.grade = ? AND n.npcid != ?
+                      LIMIT 5";
+$similarDollsStmt = $conn->prepare($similarDollsQuery);
+$similarDollsStmt->bind_param('ii', $doll['grade'], $dollId);
+$similarDollsStmt->execute();
+$similarDollsResult = $similarDollsStmt->get_result();
+$similarDolls = $similarDollsResult->fetch_all(MYSQLI_ASSOC);
+
+if (!empty($similarDolls)): ?>
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Similar Magic Dolls</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <?php foreach ($similarDolls as $similarDoll): 
+                        $similarDisplayName = preg_replace('/\bMagic Doll\b/', '', $similarDoll['desc_en']);
+                        $similarDisplayName = trim(preg_replace('/ +/', ' ', $similarDisplayName));
+                        
+                        // Determine icon path (similar to the logic in the main page)
+                        $similarIconPath = null;
+                        if (!empty($similarDoll['iconid'])) {
+                            $similarIconPath = "icons/{$similarDoll['iconid']}.png";
+                            if (!file_exists($similarIconPath)) {
+                                $similarIconPath = "icons/icon_{$similarDoll['iconid']}.png";
+                            }
+                        }
+                        
+                        // Fallback to sprite icon if no item icon
+                        if ((!$similarIconPath || !file_exists($similarIconPath))) {
+                            $similarIconPath = "icons/ms{$similarDoll['spriteId']}.png";
+                        }
+                        
+                        $hasIcon = file_exists($similarIconPath);
+                    ?>
+                    <div class="col-md-4 mb-3">
+                        <a href="view_doll.php?id=<?php echo $similarDoll['npcid']; ?>" class="text-decoration-none">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <?php if ($hasIcon): ?>
+                                        <img src="<?php echo $similarIconPath; ?>" alt="<?php echo htmlspecialchars($similarDisplayName); ?>" class="img-fluid mb-2" style="max-height: 150px; object-fit: contain;">
+                                    <?php else: ?>
+                                        <div class="text-center mb-2" style="height: 150px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-robot fs-1 text-muted"></i>
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <div class="d-flex justify-content-center align-items-center">
+                                        <span class="text-primary me-2"><?php echo htmlspecialchars($similarDisplayName); ?></span>
+                                        <span class="badge bg-secondary">Grade <?php echo $similarDoll['grade']; ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
                 <div class="text-center mt-4 mb-4">
                     <a href="doll_list.php" class="btn btn-secondary">
                         <i class="bi bi-arrow-left me-2"></i>Back to Magic Dolls
