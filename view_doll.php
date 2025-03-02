@@ -63,12 +63,11 @@ if (isset($_GET['id'])) {
             $potentialResult = $potentialStmt->get_result();
             $potential = $potentialResult->fetch_assoc();
             
-            // Get the potential grade information
-            $enchantGradeQuery = "SELECT DISTINCT grade FROM magicdoll_potential ORDER BY grade";
-            $enchantGradeResult = $conn->query($enchantGradeQuery);
+            // Get the potential grade information.
+            // Instead of querying magicdoll_potential for a grade column (which doesn't exist), we use the grade from the magicdoll_info table.
             $enhancementGrades = [];
-            while ($gradeRow = $enchantGradeResult->fetch_assoc()) {
-                $enhancementGrades[] = $gradeRow['grade'];
+            if (isset($doll['grade'])) {
+                $enhancementGrades[] = $doll['grade'];
             }
             
             // Collect all non-zero stat attributes for display
@@ -144,7 +143,7 @@ if (isset($_GET['id'])) {
                         <div class="card mb-4">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h4 class="mb-0"><?php echo htmlspecialchars($displayName); ?></h4>
-                                <span class="badge bg-primary">Grade <?php echo $doll['grade']; ?></span>
+                                <span class="badge bg-primary">Grade <?php echo htmlspecialchars($doll['grade']); ?></span>
                             </div>
                             <div class="card-body text-center">
                                 <?php if ($hasIcon): ?>
@@ -356,11 +355,10 @@ if (isset($_GET['id'])) {
                                     </div>
                                     
                                     <?php
-                                    // Fetch possible max enhancement stats from magicdoll_potential
-                                    $maxStatsQuery = "SELECT * FROM magicdoll_potential 
-                                                      WHERE bonusId = ? AND grade = (SELECT MAX(grade) FROM magicdoll_potential WHERE bonusId = ?)";
+                                    // Updated maximum stats query: remove grade reference since the column no longer exists.
+                                    $maxStatsQuery = "SELECT * FROM magicdoll_potential WHERE bonusId = ? LIMIT 1";
                                     $maxStatsStmt = $conn->prepare($maxStatsQuery);
-                                    $maxStatsStmt->bind_param('ii', $doll['bonusItemId'], $doll['bonusItemId']);
+                                    $maxStatsStmt->bind_param('i', $doll['bonusItemId']);
                                     $maxStatsStmt->execute();
                                     $maxStatsResult = $maxStatsStmt->get_result();
                                     $maxStats = $maxStatsResult->fetch_assoc();

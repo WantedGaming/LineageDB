@@ -135,6 +135,14 @@ $result = $stmt->get_result();
             </div>
         </div>
     </div>
+	
+	<!-- Banner Box with link to the Enhancement Guide -->
+    <div class="alert alert-info text-center" role="alert">
+        <h4 class="alert-heading">Enhancement Guide Available!</h4>
+        <p>Learn how to enhance your magic dolls using the Potential Enhancement system.</p>
+        <hr>
+        <a href="doll_guide.php" class="btn btn-primary" target="_blank">Read the Enhancement Guide</a>
+    </div>
     
     <!-- Search and Filter Form with Additional Options -->
     <div class="card mb-4">
