@@ -260,7 +260,7 @@ try {
                     </div>
                     
                     <div class="mt-3">
-                        <h6>Class Restrictions</h6>
+                        <h6>Used By</h6>
                         <div class="d-flex flex-wrap gap-2">
                             <?php if (!empty($classRestrictions)): ?>
                                 <?php foreach ($classRestrictions as $class): ?>

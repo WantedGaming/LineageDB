@@ -1,51 +1,49 @@
 <?php
 /**
- * Find the best icon for a polymorph
- * 
- * @param mysqli $conn Database connection
- * @param int $polyId Polymorph ID
- * @param int $polyItemId Item ID from polyitems
- * @return string|null Path to the icon
+ * Helper function to get polymorph icon paths
+ * This function checks multiple possible locations for polymorph icons
  */
-function findPolymorphIcon($conn, $polyId, $polyItemId = null) {
-    // Possible icon sources in order of preference
-    $iconSources = [
-        // 1. Check etcitem for icon via polyitems
-        function() use ($conn, $polyItemId) {
-            if (!$polyItemId) return null;
-            
-            $query = "SELECT iconId FROM etcitem WHERE item_id = ?";
-            $stmt = $conn->prepare($query);
-            $stmt->bind_param("i", $polyItemId);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            
-            if ($result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                $iconPath = "icons/icon_{$row['iconId']}.png";
-                return file_exists($iconPath) ? $iconPath : null;
-            }
-            return null;
-        },
-        
-        // 2. Check sprite image
-        function() use ($polyId) {
-            $spritePath = "icons/ms{$polyId}.png";
-            return file_exists($spritePath) ? $spritePath : null;
-        },
-        
-        // 3. Fallback to default polymorph icon
-        function() {
-            $defaultIconPath = "icons/polymorph_default.png";
-            return file_exists($defaultIconPath) ? $defaultIconPath : null;
+function getPolymorphIconPath($polymorph) {
+    // 1. Check for item icon if available
+    if (!empty($polymorph['etcitem_icon'])) {
+        $iconPath = "icons/icon_{$polymorph['etcitem_icon']}.png";
+        if (file_exists($iconPath)) {
+            return $iconPath;
         }
-    ];
-    
-    // Try each icon source
-    foreach ($iconSources as $sourceFunc) {
-        $iconPath = $sourceFunc();
-        if ($iconPath) return $iconPath;
     }
     
+    // 2. Check for sprite image using polyID
+    $spritePath = "icons/ms{$polymorph['polyid']}.png";
+    if (file_exists($spritePath)) {
+        return $spritePath;
+    }
+    
+    // 3. Try to find a generic icon based on name
+    $genericPath = null;
+    if (stripos($polymorph['name'], 'knight') !== false) {
+        $genericPath = "icons/type_knight.png";
+    } elseif (stripos($polymorph['name'], 'assassin') !== false) {
+        $genericPath = "icons/type_assassin.png";
+    } elseif (stripos($polymorph['name'], 'ranger') !== false || stripos($polymorph['name'], 'scouter') !== false) {
+        $genericPath = "icons/type_ranger.png";
+    } elseif (stripos($polymorph['name'], 'wizard') !== false || stripos($polymorph['name'], 'magister') !== false) {
+        $genericPath = "icons/type_wizard.png";
+    } elseif (stripos($polymorph['name'], 'death') !== false) {
+        $genericPath = "icons/type_death.png";
+    } elseif (stripos($polymorph['name'], 'orc') !== false) {
+        $genericPath = "icons/type_orc.png";
+    }
+    
+    if ($genericPath && file_exists($genericPath)) {
+        return $genericPath;
+    }
+    
+    // 4. Return a default placeholder
+    $defaultPath = "icons/default_polymorph.png";
+    if (file_exists($defaultPath)) {
+        return $defaultPath;
+    }
+    
+    // No icon found
     return null;
 }
