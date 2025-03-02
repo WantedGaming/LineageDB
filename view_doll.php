@@ -11,108 +11,178 @@ if (isset($_GET['id'])) {
     $dollId = intval($_GET['id']);
     
     try {
-        // Fetch doll details from npc table
-        $query = "SELECT * FROM npc WHERE npcid = ? AND impl = 'L1Doll'";
+        // Fetch doll details from npc table with enhanced relationships
+        $query = "SELECT n.*, 
+                       mi.name as item_name, mi.grade, mi.itemId, mi.haste, 
+                       mi.bonusCount, mi.bonusInterval, mi.bonusItemId, mi.damageChance,
+                       e.iconid, e.desc_en as item_description,
+                       mp.* 
+                FROM npc n
+                JOIN magicdoll_info mi ON n.npcid = mi.dollNpcId
+                LEFT JOIN etcitem e ON mi.itemId = e.item_id 
+                LEFT JOIN magicdoll_potential mp ON mi.bonusItemId = mp.bonusId
+                WHERE n.npcid = ? AND n.impl = 'L1Doll'";
+                
         $stmt = $conn->prepare($query);
         $stmt->bind_param('i', $dollId);
         $stmt->execute();
         $result = $stmt->get_result();
         $doll = $result->fetch_assoc();
         
-        // Fetch doll info from magicdoll_info table
-        $dollInfoQuery = "SELECT * FROM magicdoll_info WHERE dollNpcId = ?";
-        $dollInfoStmt = $conn->prepare($dollInfoQuery);
-        $dollInfoStmt->bind_param('i', $dollId);
-        $dollInfoStmt->execute();
-        $dollInfoResult = $dollInfoStmt->get_result();
-        $dollInfo = ($dollInfoResult && $dollInfoResult->num_rows > 0) ? $dollInfoResult->fetch_assoc() : null;
-        
-        // If we have doll info, get potential details
-        $potential = null;
-        if ($dollInfo && !empty($dollInfo['bonusItemId'])) {
-            $potentialQuery = "SELECT * FROM magicdoll_potential WHERE bonusId = ?";
+        if ($doll) {
+            // Format display name by removing "Magic Doll" text
+            $displayName = $doll['desc_en'];
+            $displayName = preg_replace('/\bMagic Doll\b/', '', $displayName);
+            $displayName = preg_replace('/ +/', ' ', $displayName); // Remove extra spaces
+            $displayName = trim($displayName);
+            
+            // Get icons using multiple methods
+            $iconPath = null;
+            if (!empty($doll['iconid'])) {
+                $iconPath = "icons/{$doll['iconid']}.png";
+                // Check if file exists without icon_ prefix
+                if (!file_exists($iconPath)) {
+                    $iconPath = "icons/icon_{$doll['iconid']}.png";
+                }
+            }
+            
+            // If no direct icon, try sprite
+            if ((!$iconPath || !file_exists($iconPath))) {
+                $iconPath = "icons/ms{$doll['spriteId']}.png";
+            }
+            
+            $hasIcon = file_exists($iconPath);
+            
+            // Fetch potential enchantment information
+            $potentialQuery = "SELECT mp.* 
+                           FROM magicdoll_potential mp 
+                           WHERE mp.bonusId = ?";
             $potentialStmt = $conn->prepare($potentialQuery);
-            $potentialStmt->bind_param('i', $dollInfo['bonusItemId']);
+            $potentialStmt->bind_param('i', $doll['bonusItemId']);
             $potentialStmt->execute();
             $potentialResult = $potentialStmt->get_result();
-            $potential = ($potentialResult && $potentialResult->num_rows > 0) ? $potentialResult->fetch_assoc() : null;
-        }
-        
-        if ($doll) {
-            // Display doll details
+            $potential = $potentialResult->fetch_assoc();
+            
+            // Get the potential grade information
+            $enchantGradeQuery = "SELECT DISTINCT grade FROM magicdoll_potential ORDER BY grade";
+            $enchantGradeResult = $conn->query($enchantGradeQuery);
+            $enhancementGrades = [];
+            while ($gradeRow = $enchantGradeResult->fetch_assoc()) {
+                $enhancementGrades[] = $gradeRow['grade'];
+            }
+            
+            // Collect all non-zero stat attributes for display
+            $stats = [];
+            if ($doll['str'] > 0) $stats['STR'] = $doll['str'];
+            if ($doll['dex'] > 0) $stats['DEX'] = $doll['dex'];
+            if ($doll['con'] > 0) $stats['CON'] = $doll['con'];
+            if ($doll['intel'] > 0) $stats['INT'] = $doll['intel'];
+            if ($doll['wis'] > 0) $stats['WIS'] = $doll['wis'];
+            if ($doll['cha'] > 0) $stats['CHA'] = $doll['cha'];
+            
+            // Collect potential stats
+            $potentialStats = [];
+            $speedEffects = [];
+            
+            if (!empty($potential)) {
+                $statFields = [
+                    'str' => 'STR', 
+                    'con' => 'CON', 
+                    'dex' => 'DEX', 
+                    'int' => 'INT', 
+                    'wis' => 'WIS', 
+                    'cha' => 'CHA',
+                    'hp' => 'HP', 
+                    'mp' => 'MP', 
+                    'hpr' => 'HP Regen', 
+                    'mpr' => 'MP Regen',
+                    'shortDamage' => 'Melee Damage', 
+                    'shortHit' => 'Melee Hit', 
+                    'longDamage' => 'Ranged Damage',
+                    'spellpower' => 'Magic Power',
+                    'mr' => 'Magic Resistance',
+                    'shortCritical' => 'Melee Crit',
+                    'longCritical' => 'Ranged Crit',
+                    'magicCritical' => 'Magic Crit',
+                    'ac_bonus' => 'AC',
+                    'dg' => 'Dodge',
+                    'er' => 'Evasion',
+                    'me' => 'Mental'
+                ];
+                
+                foreach ($statFields as $field => $label) {
+                    if (isset($potential[$field]) && $potential[$field] > 0) {
+                        $potentialStats[$label] = $potential[$field];
+                    }
+                }
+                
+                // Add elemental resistances if present
+                if (isset($potential['attrFire']) && $potential['attrFire'] > 0) $potentialStats['Fire Resist'] = $potential['attrFire'];
+                if (isset($potential['attrWater']) && $potential['attrWater'] > 0) $potentialStats['Water Resist'] = $potential['attrWater'];
+                if (isset($potential['attrWind']) && $potential['attrWind'] > 0) $potentialStats['Wind Resist'] = $potential['attrWind'];
+                if (isset($potential['attrEarth']) && $potential['attrEarth'] > 0) $potentialStats['Earth Resist'] = $potential['attrEarth'];
+                
+                // Check for speed bonuses
+                if (isset($potential['firstSpeed']) && $potential['firstSpeed'] == 1) $speedEffects[] = "First Speed";
+                if (isset($potential['secondSpeed']) && $potential['secondSpeed'] == 1) $speedEffects[] = "Second Speed";
+                if (isset($potential['thirdSpeed']) && $potential['thirdSpeed'] == 1) $speedEffects[] = "Third Speed";
+                if (isset($potential['forthSpeed']) && $potential['forthSpeed'] == 1) $speedEffects[] = "Fourth Speed";
+            }
+            
+            // Display the doll details
             ?>
             <div class="container mt-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="doll_list.php">Magic Dolls</a></li>
+                        <li class="breadcrumb-item active" aria-current="page"><?php echo htmlspecialchars($displayName); ?></li>
+                    </ol>
+                </nav>
+                
                 <div class="row">
                     <div class="col-md-5">
                         <div class="card mb-4">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h4 class="mb-0"><?php echo htmlspecialchars($doll['desc_en']); ?></h4>
-                                <?php if ($dollInfo && isset($dollInfo['grade'])): ?>
-                                    <span class="badge bg-primary">Grade <?php echo $dollInfo['grade']; ?></span>
-                                <?php endif; ?>
+                                <h4 class="mb-0"><?php echo htmlspecialchars($displayName); ?></h4>
+                                <span class="badge bg-primary">Grade <?php echo $doll['grade']; ?></span>
                             </div>
-                            <div class="card-body text-center" style="padding: 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: rgba(0,0,0,0.05);">
-                                <?php
-                                // Try to get item icon from etcitem
-                                $itemIconPath = null;
-                                if ($dollInfo && !empty($dollInfo['itemId'])) {
-                                    $itemIconQuery = "SELECT iconid FROM etcitem WHERE item_id = ?";
-                                    $itemIconStmt = $conn->prepare($itemIconQuery);
-                                    $itemIconStmt->bind_param('i', $dollInfo['itemId']);
-                                    $itemIconStmt->execute();
-                                    $itemIconResult = $itemIconStmt->get_result();
-                                    $itemIcon = $itemIconResult->fetch_assoc();
-                                    
-                                    if ($itemIcon && !empty($itemIcon['iconid'])) {
-                                        $itemIconPath = "icons/icon_{$itemIcon['iconid']}.png";
-                                    }
-                                }
-                                
-                                // Fallback to sprite icon
-                                if (!$itemIconPath || !file_exists($itemIconPath)) {
-                                    $itemIconPath = "icons/ms{$doll['spriteId']}.png";
-                                }
-                                
-                                if (file_exists($itemIconPath)):
-                                ?>
-                                    <div class="sprite-container" style="height: 300px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                        <img src="<?php echo $itemIconPath; ?>"
-                                             alt="Doll Icon"
-                                             style="max-width: 100%; max-height: 300px; object-fit: contain;">
+                            <div class="card-body text-center">
+                                <?php if ($hasIcon): ?>
+                                    <div class="image-container mb-4" style="height: 300px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                        <img src="<?php echo $iconPath; ?>" alt="<?php echo htmlspecialchars($displayName); ?>" style="max-width: 100%; max-height: 100%; object-fit: contain;">
                                     </div>
                                 <?php else: ?>
-                                    <div style="height: 300px; display: flex; align-items: center; justify-content: center;">
-                                        <div class="text-center">
-                                            <i class="bi bi-robot fs-1 text-muted" style="font-size: 6rem;"></i>
-                                            <p class="mt-3">No Icon Available</p>
-                                        </div>
+                                    <div class="text-center mb-4" style="height: 300px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-robot fs-1 text-muted" style="font-size: 6rem;"></i>
                                     </div>
                                 <?php endif; ?>
                                 
-                                <div class="mt-3 text-center">
-                                    <p class="lead mb-0">Level <?php echo $doll['lvl']; ?> Magic Doll</p>
-                                    <?php if ($dollInfo && isset($dollInfo['name'])): ?>
-                                        <p class="text-primary mb-0">Item Name: <?php echo htmlspecialchars($dollInfo['name']); ?></p>
+                                <div class="doll-info">
+                                    <h5>Level <?php echo $doll['lvl']; ?> Magic Doll</h5>
+                                    <?php if (!empty($doll['item_name'])): ?>
+                                        <p class="text-muted">Item: <?php echo htmlspecialchars($doll['item_name']); ?></p>
                                     <?php endif; ?>
-                                    <?php if (isset($doll['note']) && !empty($doll['note'])): ?>
-                                        <p class="text-muted mt-2"><?php echo htmlspecialchars($doll['note']); ?></p>
+                                    
+                                    <?php if ($doll['haste'] == 1): ?>
+                                        <div class="mt-3">
+                                            <span class="badge bg-success p-2">
+                                                <i class="bi bi-speedometer2 me-1"></i>Haste Effect
+                                            </span>
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <?php if ($doll['damageChance'] > 0): ?>
+                                        <div class="mt-2">
+                                            <span class="badge bg-danger p-2">
+                                                <i class="bi bi-lightning me-1"></i><?php echo $doll['damageChance']; ?>% Damage Chance
+                                            </span>
+                                        </div>
                                     <?php endif; ?>
                                 </div>
                             </div>
-                            
-                            <?php if ($dollInfo && $dollInfo['haste']): ?>
-                            <div class="card-footer text-center">
-                                <span class="badge bg-success me-2">Haste Effect</span>
-                                <?php if ($dollInfo['damageChance'] > 0): ?>
-                                    <span class="badge bg-danger">
-                                        <?php echo $dollInfo['damageChance']; ?>% Damage Chance
-                                    </span>
-                                <?php endif; ?>
-                            </div>
-                            <?php endif; ?>
                         </div>
                         
-                        <?php if ($potential): ?>
+                        <?php if (!empty($potentialStats) || !empty($speedEffects)): ?>
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="mb-0">
@@ -120,96 +190,41 @@ if (isset($_GET['id'])) {
                                 </h5>
                             </div>
                             <div class="card-body">
-                                <h6 class="text-primary"><?php echo htmlspecialchars($potential['name']); ?></h6>
+                                <?php if (isset($potential['name'])): ?>
+                                    <h6 class="text-primary mb-3"><?php echo htmlspecialchars($potential['name']); ?></h6>
+                                <?php endif; ?>
                                 
-                                <?php
-                                // Display all stat bonuses that have values
-                                $statBonuses = [];
-                                
-                                // Basic stats
-                                if ($potential['str'] > 0) $statBonuses[] = "STR +" . $potential['str'];
-                                if ($potential['con'] > 0) $statBonuses[] = "CON +" . $potential['con'];
-                                if ($potential['dex'] > 0) $statBonuses[] = "DEX +" . $potential['dex'];
-                                if ($potential['int'] > 0) $statBonuses[] = "INT +" . $potential['int'];
-                                if ($potential['wis'] > 0) $statBonuses[] = "WIS +" . $potential['wis'];
-                                if ($potential['cha'] > 0) $statBonuses[] = "CHA +" . $potential['cha'];
-                                if ($potential['allStatus'] > 0) $statBonuses[] = "All Stats +" . $potential['allStatus'];
-                                
-                                // Combat stats
-                                if ($potential['shortDamage'] > 0) $statBonuses[] = "Melee Damage +" . $potential['shortDamage'];
-                                if ($potential['shortHit'] > 0) $statBonuses[] = "Melee Hit +" . $potential['shortHit'];
-                                if ($potential['shortCritical'] > 0) $statBonuses[] = "Melee Crit +" . $potential['shortCritical'];
-                                if ($potential['longDamage'] > 0) $statBonuses[] = "Ranged Damage +" . $potential['longDamage'];
-                                if ($potential['longHit'] > 0) $statBonuses[] = "Ranged Hit +" . $potential['longHit'];
-                                if ($potential['longCritical'] > 0) $statBonuses[] = "Ranged Crit +" . $potential['longCritical'];
-                                if ($potential['spellpower'] > 0) $statBonuses[] = "Spell Power +" . $potential['spellpower'];
-                                if ($potential['magicHit'] > 0) $statBonuses[] = "Magic Hit +" . $potential['magicHit'];
-                                if ($potential['magicCritical'] > 0) $statBonuses[] = "Magic Crit +" . $potential['magicCritical'];
-                                
-                                // HP/MP stats
-                                if ($potential['hp'] > 0) $statBonuses[] = "HP +" . $potential['hp'];
-                                if ($potential['mp'] > 0) $statBonuses[] = "MP +" . $potential['mp'];
-                                if ($potential['hpr'] > 0) $statBonuses[] = "HP Regen +" . $potential['hpr'];
-                                if ($potential['mpr'] > 0) $statBonuses[] = "MP Regen +" . $potential['mpr'];
-                                
-                                // Defensive stats
-                                if ($potential['ac_bonus'] > 0) $statBonuses[] = "AC +" . $potential['ac_bonus'];
-                                if ($potential['mr'] > 0) $statBonuses[] = "MR +" . $potential['mr'];
-                                if ($potential['dg'] > 0) $statBonuses[] = "Dodge +" . $potential['dg'];
-                                if ($potential['er'] > 0) $statBonuses[] = "Evasion +" . $potential['er'];
-                                if ($potential['me'] > 0) $statBonuses[] = "Mental +" . $potential['me'];
-                                
-                                // Elemental stats
-                                if ($potential['attrFire'] > 0) $statBonuses[] = "Fire Resist +" . $potential['attrFire'];
-                                if ($potential['attrWater'] > 0) $statBonuses[] = "Water Resist +" . $potential['attrWater'];
-                                if ($potential['attrWind'] > 0) $statBonuses[] = "Wind Resist +" . $potential['attrWind'];
-                                if ($potential['attrEarth'] > 0) $statBonuses[] = "Earth Resist +" . $potential['attrEarth'];
-                                if ($potential['attrAll'] > 0) $statBonuses[] = "All Element Resist +" . $potential['attrAll'];
-                                
-                                // Utility stats
-                                if ($potential['expBonus'] > 0) $statBonuses[] = "EXP Bonus +" . $potential['expBonus'] . "%";
-                                if ($potential['carryBonus'] > 0) $statBonuses[] = "Weight Limit +" . $potential['carryBonus'];
-                                
-                                // Speed bonuses
-                                $speedBonuses = [];
-                                if ($potential['firstSpeed']) $speedBonuses[] = "First Speed";
-                                if ($potential['secondSpeed']) $speedBonuses[] = "Second Speed";
-                                if ($potential['thirdSpeed']) $speedBonuses[] = "Third Speed";
-                                if ($potential['forthSpeed']) $speedBonuses[] = "Fourth Speed";
-                                
-                                if (!empty($statBonuses)):
-                                ?>
-                                <div class="mb-3">
-                                    <div class="d-flex flex-wrap mt-2">
-                                        <?php foreach ($statBonuses as $bonus): ?>
-                                            <span class="badge bg-secondary me-2 mb-2 p-2">
-                                                <?php echo $bonus; ?>
-                                            </span>
-                                        <?php endforeach; ?>
+                                <?php if (!empty($potentialStats)): ?>
+                                <div class="row">
+                                    <?php foreach ($potentialStats as $statName => $statValue): ?>
+                                    <div class="col-6 col-md-4 mb-2">
+                                        <div class="d-flex justify-content-between border-bottom pb-1">
+                                            <span><?php echo htmlspecialchars($statName); ?></span>
+                                            <span class="text-primary">+<?php echo htmlspecialchars($statValue); ?></span>
+                                        </div>
                                     </div>
+                                    <?php endforeach; ?>
                                 </div>
                                 <?php endif; ?>
                                 
-                                <?php if (!empty($speedBonuses)): ?>
-                                <div class="mb-3">
-                                    <h6>Speed Bonuses</h6>
-                                    <div class="d-flex flex-wrap">
-                                        <?php foreach ($speedBonuses as $speed): ?>
-                                            <span class="badge bg-info me-2 mb-2 p-2">
-                                                <?php echo $speed; ?>
-                                            </span>
-                                        <?php endforeach; ?>
-                                    </div>
-                                </div>
-                                <?php endif; ?>
-                                
-                                <?php if ($potential['skilId'] > 0): ?>
+                                <?php if (!empty($speedEffects)): ?>
                                 <div class="mt-3">
-                                    <h6>Special Skill</h6>
+                                    <h6 class="text-muted">Speed Effects</h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <?php foreach ($speedEffects as $effect): ?>
+                                            <span class="badge bg-info p-2"><?php echo htmlspecialchars($effect); ?></span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
+                                
+                                <?php if (isset($potential['skill_id']) && $potential['skill_id'] > 0): ?>
+                                <div class="mt-3">
+                                    <h6 class="text-muted">Special Skill</h6>
                                     <p>
-                                        Skill ID: <?php echo $potential['skilId']; ?>
-                                        <?php if ($potential['skillChance'] > 0): ?>
-                                            (<?php echo $potential['skillChance']; ?>% chance)
+                                        <?php echo isset($potential['skillName']) ? htmlspecialchars($potential['skillName']) : 'Skill ID: '.$potential['skill_id']; ?>
+                                        <?php if (isset($potential['skillChance']) && $potential['skillChance'] > 0): ?>
+                                            <span class="badge bg-secondary ms-2"><?php echo $potential['skillChance']; ?>% chance</span>
                                         <?php endif; ?>
                                     </p>
                                 </div>
@@ -222,7 +237,7 @@ if (isset($_GET['id'])) {
                     <div class="col-md-7">
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="mb-0">Stats</h5>
+                                <h5 class="mb-0">Base Stats</h5>
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -251,32 +266,12 @@ if (isset($_GET['id'])) {
                                     <div class="col-md-6">
                                         <table class="table table-sm">
                                             <tbody>
+                                                <?php foreach ($stats as $statName => $statValue): ?>
                                                 <tr>
-                                                    <th>STR</th>
-                                                    <td><?php echo $doll['str']; ?></td>
+                                                    <th><?php echo htmlspecialchars($statName); ?></th>
+                                                    <td><?php echo htmlspecialchars($statValue); ?></td>
                                                 </tr>
-                                                <tr>
-                                                    <th>DEX</th>
-                                                    <td><?php echo $doll['dex']; ?></td>
-                                                </tr>
-                                                <tr>
-                                                    <th>CON</th>
-                                                    <td><?php echo $doll['con']; ?></td>
-                                                </tr>
-                                                <tr>
-                                                    <th>INT</th>
-                                                    <td><?php echo $doll['intel']; ?></td>
-                                                </tr>
-                                                <tr>
-                                                    <th>WIS</th>
-                                                    <td><?php echo $doll['wis']; ?></td>
-                                                </tr>
-                                                <?php if (isset($doll['cha'])): ?>
-                                                <tr>
-                                                    <th>CHA</th>
-                                                    <td><?php echo $doll['cha']; ?></td>
-                                                </tr>
-                                                <?php endif; ?>
+                                                <?php endforeach; ?>
                                             </tbody>
                                         </table>
                                     </div>
@@ -284,97 +279,183 @@ if (isset($_GET['id'])) {
                             </div>
                         </div>
                         
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="mb-0">Combat Abilities</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <table class="table table-sm">
-                                            <tbody>
-                                                <?php if (isset($doll['dmgmin']) && isset($doll['dmgmax'])): ?>
-                                                <tr>
-                                                    <th>Damage</th>
-                                                    <td><?php echo $doll['dmgmin']; ?> - <?php echo $doll['dmgmax']; ?></td>
-                                                </tr>
-                                                <?php else: ?>
-                                                <tr>
-                                                    <th>Damage</th>
-                                                    <td>N/A</td>
-                                                </tr>
-                                                <?php endif; ?>
-                                                
-                                                <?php if (isset($doll['range'])): ?>
-                                                <tr>
-                                                    <th>Range</th>
-                                                    <td><?php echo $doll['range']; ?></td>
-                                                </tr>
-                                                <?php endif; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <table class="table table-sm">
-                                            <tbody>
-                                                <?php if (isset($doll['atkspeed'])): ?>
-                                                <tr>
-                                                    <th>Attack Speed</th>
-                                                    <td><?php echo $doll['atkspeed']; ?></td>
-                                                </tr>
-                                                <?php endif; ?>
-                                                
-                                                <?php if (isset($doll['movespeed'])): ?>
-                                                <tr>
-                                                    <th>Move Speed</th>
-                                                    <td><?php echo $doll['movespeed']; ?></td>
-                                                </tr>
-                                                <?php endif; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                
-                                <?php if (isset($doll['passivespell']) && !empty($doll['passivespell'])): ?>
-                                <div class="mt-3">
-                                    <h6>Passive Effects</h6>
-                                    <p><?php echo htmlspecialchars($doll['passivespell']); ?></p>
-                                </div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                        
-                        <?php if ($dollInfo && $dollInfo['bonusInterval'] > 0): ?>
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="mb-0">Bonus Information</h5>
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-6">
-                                        <p><strong>Bonus Interval:</strong> <?php echo $dollInfo['bonusInterval']; ?> seconds</p>
+                                    <?php if ($doll['bonusInterval'] > 0): ?>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="info-box p-3 border rounded">
+                                            <h6 class="mb-2">
+                                                <i class="bi bi-clock-history me-2"></i>Bonus Interval
+                                            </h6>
+                                            <p class="mb-0">
+                                                This doll provides bonuses every <strong><?php echo $doll['bonusInterval']; ?> seconds</strong>
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <p><strong>Bonus Count:</strong> <?php echo $dollInfo['bonusCount']; ?></p>
+                                    <?php endif; ?>
+                                    
+                                    <?php if ($doll['bonusCount'] > 0): ?>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="info-box p-3 border rounded">
+                                            <h6 class="mb-2">
+                                                <i class="bi bi-stoplights me-2"></i>Bonus Count
+                                            </h6>
+                                            <p class="mb-0">
+                                                This doll provides up to <strong><?php echo $doll['bonusCount']; ?> bonuses</strong>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+                                
+                                <?php if (!empty($doll['passivespell'])): ?>
+                                <div class="mt-3">
+                                    <h5 class="text-primary mb-2">Passive Effects</h5>
+                                    <div class="p-3 border rounded">
+                                        <?php echo nl2br(htmlspecialchars($doll['passivespell'])); ?>
                                     </div>
                                 </div>
+                                <?php endif; ?>
                             </div>
                         </div>
-                        <?php endif; ?>
                         
-                        <?php if ($dollInfo && $dollInfo['blessItemId'] > 0): ?>
+                        <!-- New Enchantment Potential Section -->
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="mb-0">Enchantment Information</h5>
+                                <h5 class="mb-0">
+                                    <i class="bi bi-arrow-up-circle me-2"></i>Enchantment Potential
+                                </h5>
                             </div>
                             <div class="card-body">
-                                <p>This doll can be enhanced using a blessing item (ID: <?php echo $dollInfo['blessItemId']; ?>).</p>
-                                <p>Enchanting magic dolls can improve their stats and abilities. Higher grade dolls provide stronger bonuses and passive effects.</p>
+                                <?php if ($doll['bonusItemId'] > 0): ?>
                                 <div class="alert alert-info">
                                     <i class="bi bi-info-circle me-2"></i>
-                                    To enchant this doll, you'll need to obtain the specified blessing item and use it on the doll. 
-                                    Successful enchantment will increase the doll's grade and enhance its abilities.
+                                    This magic doll can be enhanced using enchantment. Enhancing the doll increases its stats and abilities based on its potential.
                                 </div>
+                                
+                                <div class="mt-4">
+                                    <h6 class="mb-3">Available Enhancement Grades</h6>
+                                    <div class="d-flex flex-wrap gap-2 mb-4">
+                                        <?php 
+                                        // Show available enhancement grades with current one highlighted
+                                        foreach ($enhancementGrades as $grade):
+                                            $isCurrentGrade = isset($potential['grade']) && $potential['grade'] == $grade;
+                                            $gradeClass = $isCurrentGrade ? 'bg-primary' : 'bg-secondary';
+                                        ?>
+                                        <span class="badge <?php echo $gradeClass; ?> p-2">
+                                            <?php echo "Grade " . htmlspecialchars($grade); ?>
+                                            <?php if ($isCurrentGrade): ?>
+                                                <i class="bi bi-check-circle ms-1"></i>
+                                            <?php endif; ?>
+                                        </span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    
+                                    <?php
+                                    // Fetch possible max enhancement stats from magicdoll_potential
+                                    $maxStatsQuery = "SELECT * FROM magicdoll_potential 
+                                                      WHERE bonusId = ? AND grade = (SELECT MAX(grade) FROM magicdoll_potential WHERE bonusId = ?)";
+                                    $maxStatsStmt = $conn->prepare($maxStatsQuery);
+                                    $maxStatsStmt->bind_param('ii', $doll['bonusItemId'], $doll['bonusItemId']);
+                                    $maxStatsStmt->execute();
+                                    $maxStatsResult = $maxStatsStmt->get_result();
+                                    $maxStats = $maxStatsResult->fetch_assoc();
+                                    
+                                    if ($maxStats):
+                                    ?>
+                                    <h6 class="mb-3">Maximum Potential Stats at Highest Grade</h6>
+                                    <div class="row">
+                                        <?php
+                                        // Display the maximum potential stats
+                                        $maxPotentialStats = [];
+                                        foreach ($statFields as $field => $label) {
+                                            if (isset($maxStats[$field]) && $maxStats[$field] > 0) {
+                                                $maxPotentialStats[$label] = $maxStats[$field];
+                                            }
+                                        }
+                                        
+                                        // Add elemental resistances
+                                        if (isset($maxStats['attrFire']) && $maxStats['attrFire'] > 0) $maxPotentialStats['Fire Resist'] = $maxStats['attrFire'];
+                                        if (isset($maxStats['attrWater']) && $maxStats['attrWater'] > 0) $maxPotentialStats['Water Resist'] = $maxStats['attrWater'];
+                                        if (isset($maxStats['attrWind']) && $maxStats['attrWind'] > 0) $maxPotentialStats['Wind Resist'] = $maxStats['attrWind'];
+                                        if (isset($maxStats['attrEarth']) && $maxStats['attrEarth'] > 0) $maxPotentialStats['Earth Resist'] = $maxStats['attrEarth'];
+                                        
+                                        foreach ($maxPotentialStats as $statName => $statValue):
+                                        ?>
+                                        <div class="col-6 col-md-4 mb-2">
+                                            <div class="d-flex justify-content-between">
+                                                <span><?php echo htmlspecialchars($statName); ?></span>
+                                                <span class="text-success">+<?php echo htmlspecialchars($statValue); ?></span>
+                                            </div>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    
+                                    <?php
+                                    // Check for max speed bonuses
+                                    $maxSpeedEffects = [];
+                                    if (isset($maxStats['firstSpeed']) && $maxStats['firstSpeed'] == 1) $maxSpeedEffects[] = "First Speed";
+                                    if (isset($maxStats['secondSpeed']) && $maxStats['secondSpeed'] == 1) $maxSpeedEffects[] = "Second Speed";
+                                    if (isset($maxStats['thirdSpeed']) && $maxStats['thirdSpeed'] == 1) $maxSpeedEffects[] = "Third Speed";
+                                    if (isset($maxStats['forthSpeed']) && $maxStats['forthSpeed'] == 1) $maxSpeedEffects[] = "Fourth Speed";
+                                    
+                                    if (!empty($maxSpeedEffects)):
+                                    ?>
+                                    <div class="mt-3">
+                                        <h6 class="text-muted">Maximum Speed Effects</h6>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <?php foreach ($maxSpeedEffects as $effect): ?>
+                                                <span class="badge bg-success p-2"><?php echo htmlspecialchars($effect); ?></span>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                    <?php 
+                                    endif;
+                                    endif; 
+                                    ?>
+                                    
+                                    <div class="mt-4">
+                                        <h6 class="mb-3">Enchantment Process</h6>
+                                        <ol class="ps-3">
+                                            <li class="mb-2">Obtain a Magic Doll Enhancement Stone (special item)</li>
+                                            <li class="mb-2">Right-click the enhancement stone while the doll is in your inventory</li>
+                                            <li class="mb-2">Success rate varies based on the current enhancement level</li>
+                                            <li class="mb-2">Each successful enhancement will increase the doll's grade and stats</li>
+                                            <li class="mb-2">Failed enhancements may result in decreased stats or grade</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                                <?php else: ?>
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    This magic doll cannot be enhanced with enchantment.
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        
+                        <?php 
+                        // Fetch any special notes or lore based on available info
+                        $notes = [];
+                        if (!empty($doll['note'])) $notes[] = $doll['note'];
+                        if (!empty($doll['item_description'])) $notes[] = $doll['item_description'];
+                        
+                        if (!empty($notes)):
+                        ?>
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>Additional Information
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <?php foreach ($notes as $note): ?>
+                                    <p><?php echo nl2br(htmlspecialchars($note)); ?></p>
+                                <?php endforeach; ?>
                             </div>
                         </div>
                         <?php endif; ?>
@@ -393,7 +474,7 @@ if (isset($_GET['id'])) {
             ?>
             <div class="container mt-4">
                 <div class="alert alert-warning">
-                    <strong>Magic Doll not found.</strong> The requested doll does not exist.
+                    <strong>Magic Doll not found.</strong> The requested doll does not exist or is not a valid magic doll.
                 </div>
                 <a href="doll_list.php" class="btn btn-secondary">
                     <i class="bi bi-arrow-left me-2"></i>Back to Magic Dolls List
