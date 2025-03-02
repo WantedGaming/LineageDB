@@ -1,0 +1,100 @@
+npc.sql table 
+
+npcid = only show to admin
+ - relates to droplist.sql = mobid
+ - relates to spawnlist.sql = id
+ 
+classid = only show to admin
+desc_en = Name of monster
+desc_id = only show to admin
+spriteid = only show to admin
+impl = only show to admin
+	- L1Monster = monsters
+	- L1BlackKnight = monsters
+	- L1Doll = magic dolls
+	- L1Doppelganger = monsters
+	- L1Dwarf = npc storage
+	- L1Guard = npc castle/town guards
+	- L1Housekeeper = npc house manager
+	- L1Merchant = npc shop merchants
+	- L1NPC = ingame npc
+	- L1RedKnight = training npcs
+	- L1Scarecrow = training dummies
+	- L1Teleporter = npc teleporters
+	- L1FieldObject = objects in the field
+	- L1EventTower1 = event tower
+	
+
+Main Box
+desc_en = Name of Monster
+lvl = Level
+hp = Hitpoint
+mp = Mana Points
+ac = Defense (AC)
+str = strength
+con = consitution
+dex = dexitrty
+wis = wisdom
+int = intelligence
+mr = magic resistance
+exp = experiences point gain after killing
+alignment = how much alignment points gain when killed
+big = false if it's a small monster, true if it's a big monster
+weakAttr = elemental it's weak aganist (FIRE, WIND, WATER, EARTH, NONE)
+is_taming = can be tamed or not (true = yes, false = no)
+passispeed = walk speed
+atkspeed = swing speed
+atk_magic_speed = cast speed
+undead = is the monster undead or what kind (UNDEAD = undead monster, DEMON = demon monster, UNDEAD_BOSS = undead boss monster, DRANIUM = Dranium monster)
+is_agro = is aggressive to player without polymorph?
+is_agro_poly = is aggressive to player polymorphed?
+is_agro_invis = is aggressive to players who are in transparent state, or invisible
+family = the family this monster belongs to
+is_picupitem = does this monster picks up items on the ground (false = no, true = yes)
+is_bravespeed = does this monster uses brave or haste potion (false = no, true = yes)
+is_teleport = does this monster random teleport (false = no, true = yes)
+is_hard = is the monster hard to kill (false = no, true = yes)
+is_bossmonster = is this monster a boss monster (false = no, true = yes)
+can_tumundead = can you use turn undead skill on this monster (false = no, true = yes)
+
+Box 1 (Info)
+- Name
+- Level
+- HP
+- MP
+- AC
+
+Box 2 (Stats)
+- STR
+- CON
+- DEX
+- WIS
+- INT
+- MR
+
+Box 3 - (Extra) #if anything here is "0" do not show it. Only visible to admin.
+- EXP Earn = (exp)
+- Alignment = (alignment)
+- Walk Speed = (passispeed)
+- Swing Speed = (atkspeed)
+- Cast Speed = (atk_magic_speed) 
+
+Box 4 # let's use buttons or checkbox and only show if it's true. this can also go underneath the image to make the layout better. 
+- Aggressive
+	- Normal - (is_agro)
+	- Polymorph - (is_agro_poly)
+	- Invisible - (is_agro_invis)
+- Abilites
+	- Loot = (is_picupitem)
+	- Use Haste = (is_bravespeed)
+	- Teleport = (is_teleport)
+	- Hard = (is_hard)
+	- Boss = (is_bossmonster)
+	- Use Undead Skill = (can_tumundead)
+
+Box 5 - Family
+Family = (family)
+Type = 
+
+
+

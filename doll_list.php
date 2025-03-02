@@ -12,9 +12,8 @@ $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
 $offset = ($page - 1) * $itemsPerPage;
 
 // Filtering options - enhanced with additional filters from schema
-$gradeFilter = isset($_GET['grade']) ? intval($_GET['grade']) : null;
+$gradeFilter = isset($_GET['grade']) ? $_GET['grade'] : null; // Changed to not use intval()
 $searchTerm = isset($_GET['search']) ? trim($_GET['search']) : '';
-$hasteFilter = isset($_GET['has_haste']) ? intval($_GET['has_haste']) : null;
 
 // Build query with optional filters and additional information from schema
 $query = "SELECT n.npcid, n.desc_en, n.lvl, n.hp, n.mp, n.spriteId, 
@@ -30,7 +29,7 @@ $query = "SELECT n.npcid, n.desc_en, n.lvl, n.hp, n.mp, n.spriteId,
 $params = [];
 $types = '';
 
-if ($gradeFilter !== null) {
+if (!empty($gradeFilter)) { // Check if grade filter is not empty
     $query .= " AND mi.grade = ?";
     $params[] = $gradeFilter;
     $types .= 'i';
@@ -44,31 +43,19 @@ if (!empty($searchTerm)) {
     $types .= 'sss';
 }
 
-// Add haste filter based on schema data
-if ($hasteFilter !== null) {
-    $query .= " AND mi.haste = ?";
-    $params[] = $hasteFilter;
-    $types .= 'i';
-}
-
-// Count total filtered results - FIX: Make sure we get a 'total' in the result
+// Count total filtered results
 $countQuery = "SELECT COUNT(*) as total FROM npc n 
                JOIN magicdoll_info mi ON n.npcid = mi.dollNpcId
                LEFT JOIN magicdoll_potential mp ON mi.bonusItemId = mp.bonusId
                WHERE n.impl = 'L1Doll'";
 
 // Add the same filters to the count query
-if ($gradeFilter !== null) {
+if (!empty($gradeFilter)) {
     $countQuery .= " AND mi.grade = ?";
 }
 
 if (!empty($searchTerm)) {
     $countQuery .= " AND (n.desc_en LIKE ? OR mi.name LIKE ? OR mp.name LIKE ?)";
-}
-
-// Add haste filter to count query too
-if ($hasteFilter !== null) {
-    $countQuery .= " AND mi.haste = ?";
 }
 
 $countStmt = $conn->prepare($countQuery);
@@ -78,7 +65,7 @@ if (!empty($params)) {
 $countStmt->execute();
 $totalResult = $countStmt->get_result();
 $totalRow = $totalResult->fetch_assoc();
-$totalRows = $totalRow['total']; // FIX: Now we get the 'total' value safely
+$totalRows = $totalRow['total'];
 $totalPages = ceil($totalRows / $itemsPerPage);
 
 // Add pagination to main query
@@ -152,13 +139,13 @@ $result = $stmt->get_result();
         <div class="card-body">
             <form method="GET" class="mb-3">
                 <div class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="search" class="form-label">Search</label>
                         <input type="text" id="search" name="search" class="form-control" 
                                placeholder="Search dolls by name..." 
                                value="<?php echo htmlspecialchars($searchTerm); ?>">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label for="grade" class="form-label">Grade</label>
                         <select id="grade" name="grade" class="form-select">
                             <option value="">All Grades</option>
@@ -167,22 +154,40 @@ $result = $stmt->get_result();
                             $gradeQuery = "SELECT DISTINCT grade FROM magicdoll_info ORDER BY grade ASC";
                             $gradeResult = $conn->query($gradeQuery);
                             while ($gradeRow = $gradeResult->fetch_assoc()): ?>
-                                <option value="<?php echo $gradeRow['grade']; ?>"
-                                        <?php echo ($gradeFilter === intval($gradeRow['grade']) ? 'selected' : ''); ?>>
-                                    Grade <?php echo $gradeRow['grade']; ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
-                    </div>
-                    
-                    <!-- Added additional filter for Haste based on schema -->
-                    <div class="col-md-3">
-                        <label for="has_haste" class="form-label">Special Effect</label>
-                        <select id="has_haste" name="has_haste" class="form-select">
-                            <option value="">Any</option>
-                            <option value="1" <?php echo (isset($_GET['has_haste']) && $_GET['has_haste'] == '1') ? 'selected' : ''; ?>>
-                                Has Haste Effect
+                                <?php
+                            // Add color to the grade options
+                            $gradeClassText = '';
+                            switch(intval($gradeRow['grade'])) {
+                                case 1:
+                                    $gradeClassText = 'text-secondary'; // Grey for common
+                                    break;
+                                case 2:
+                                    $gradeClassText = 'text-info'; // Blue for uncommon
+                                    break;
+                                case 3:
+                                    $gradeClassText = 'text-success'; // Green for rare
+                                    break;
+                                case 4:
+                                    $gradeClassText = 'text-warning'; // Yellow for epic
+                                    break;
+                                case 5:
+                                case 6:
+                                    $gradeClassText = 'text-danger'; // Red for legendary
+                                    break;
+                                case 7:
+                                case 8:
+                                    $gradeClassText = 'text-dark fw-bold'; // Dark bold for mythic
+                                    break;
+                                default:
+                                    $gradeClassText = '';
+                            }
+                            ?>
+                            <option value="<?php echo $gradeRow['grade']; ?>" 
+                                    class="<?php echo $gradeClassText; ?>"
+                                    <?php echo ($gradeFilter !== null && $gradeFilter == $gradeRow['grade'] ? 'selected' : ''); ?>>
+                                Grade <?php echo $gradeRow['grade']; ?>
                             </option>
+                            <?php endwhile; ?>
                         </select>
                     </div>
                     
@@ -194,7 +199,7 @@ $result = $stmt->get_result();
                 </div>
                 
                 <!-- Show reset filters button when filters are active -->
-                <?php if (!empty($searchTerm) || $gradeFilter !== null || isset($_GET['has_haste'])): ?>
+                <?php if (!empty($searchTerm) || $gradeFilter !== null): ?>
                 <div class="mt-2 text-end">
                     <a href="doll_list.php" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-x-circle me-1"></i>Reset Filters
@@ -222,7 +227,35 @@ $result = $stmt->get_result();
             <div class="col">
                 <div class="card h-100 doll-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <span class="badge bg-primary">Grade <?php echo $doll['grade']; ?></span>
+                        <?php
+                        // Set color for different grades
+                        $gradeColor = 'bg-primary';
+                        switch(intval($doll['grade'])) {
+                            case 1:
+                                $gradeColor = 'bg-secondary'; // Grey for common
+                                break;
+                            case 2:
+                                $gradeColor = 'bg-info'; // Blue for uncommon
+                                break;
+                            case 3:
+                                $gradeColor = 'bg-success'; // Green for rare
+                                break;
+                            case 4:
+                                $gradeColor = 'bg-warning text-dark'; // Yellow for epic
+                                break;
+                            case 5:
+                            case 6:
+                                $gradeColor = 'bg-danger'; // Red for legendary
+                                break;
+                            case 7:
+                            case 8:
+                                $gradeColor = 'bg-dark border border-warning'; // Dark with gold border for mythic
+                                break;
+                            default:
+                                $gradeColor = 'bg-primary'; // Default blue
+                        }
+                        ?>
+                        <span class="badge <?php echo $gradeColor; ?>">Grade <?php echo $doll['grade']; ?></span>
                         <span class="badge bg-secondary">Lvl <?php echo $doll['lvl']; ?></span>
                     </div>
                     <div class="card-body text-center">
@@ -341,9 +374,8 @@ $result = $stmt->get_result();
             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                 <li class="page-item <?php echo ($i == $page ? 'active' : ''); ?>">
                     <a class="page-link" href="?page=<?php echo $i; 
-                        echo ($gradeFilter !== null ? "&grade=$gradeFilter" : '');
-                        echo (!empty($searchTerm) ? "&search=" . urlencode($searchTerm) : '');
-                        echo ($hasteFilter !== null ? "&has_haste=$hasteFilter" : ''); ?>">
+                        echo (!empty($gradeFilter) ? "&grade=$gradeFilter" : '');
+                        echo (!empty($searchTerm) ? "&search=" . urlencode($searchTerm) : ''); ?>">
                         <?php echo $i; ?>
                     </a>
                 </li>
@@ -354,6 +386,7 @@ $result = $stmt->get_result();
 </div>
 
 <!-- Additional information about Magic Dolls based on schema -->
+<div class="container mb-5 mt-5"><!-- Added mt-5 class to add top margin -->
 <div class="container mb-5">
     <div class="card">
         <div class="card-header">

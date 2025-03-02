@@ -20,6 +20,20 @@ if (isset($_GET['id'])) {
         $monster = $result->fetch_assoc();
         
         if ($monster) {
+            // Collect the monster skills
+            $skillsQuery = "SELECT * FROM mobskill WHERE mobid = ?";
+            $skillsStmt = $conn->prepare($skillsQuery);
+            $skillsStmt->bind_param('i', $monsterId);
+            $skillsStmt->execute();
+            $skillsResult = $skillsStmt->get_result();
+            
+            $monsterSkills = [];
+            if ($skillsResult && $skillsResult->num_rows > 0) {
+                while ($skill = $skillsResult->fetch_assoc()) {
+                    $monsterSkills[] = $skill;
+                }
+            }
+            
             // Display monster details
             ?>
             <div class="container mt-4">
@@ -27,7 +41,13 @@ if (isset($_GET['id'])) {
                     <div class="col-md-8">
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h4 class="mb-0"><?php echo htmlspecialchars($monster['desc_en']); ?> (Level <?php echo htmlspecialchars($monster['lvl']); ?>)</h4>
+                                <h4 class="mb-0">
+                                    <?php echo htmlspecialchars($monster['desc_en']); ?> 
+                                    <span class="badge bg-secondary">Level <?php echo htmlspecialchars($monster['lvl']); ?></span>
+                                    <?php if (!empty($monster['is_bossmonster']) && $monster['is_bossmonster'] == 1): ?>
+                                        <span class="badge bg-danger ms-2">Boss Monster</span>
+                                    <?php endif; ?>
+                                </h4>
                             </div>
                             <div class="card-body text-center" style="padding: 0; display: flex; align-items: center; justify-content: center; background-color: rgba(0,0,0,0.05);">
                                 <?php
@@ -48,7 +68,7 @@ if (isset($_GET['id'])) {
                                     </div>
                                 <?php endif; ?>
                             </div>
-                            <?php if (!empty($monster['weakAttr'])): ?>
+                            <?php if (!empty($monster['weakAttr']) && $monster['weakAttr'] != 'NONE'): ?>
                             <div class="card-footer">
                                 <div class="d-flex align-items-center">
                                     <span class="me-2"><strong>Elemental Weakness:</strong></span>
@@ -57,18 +77,67 @@ if (isset($_GET['id'])) {
                             </div>
                             <?php endif; ?>
                         </div>
-                    </div>
-                    <div class="col-md-4">
+                        
+                        <?php if (!empty($monsterSkills)): ?>
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="mb-0">Stats</h5>
+                                <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Monster Skills</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Skill ID</th>
+                                                <th>Type</th>
+                                                <th>Distance</th>
+                                                <th>Probability</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($monsterSkills as $skill): ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($skill['skillid'] ?? $skill['skill_id'] ?? "Unknown Skill"); ?></td>
+                                                <td><?php echo htmlspecialchars($skill['type'] ?? "Unknown"); ?></td>
+                                                <td><?php echo htmlspecialchars($skill['distance'] ?? $skill['range'] ?? "Unknown"); ?></td>
+                                                <td>
+                                                    <?php
+                                                    if (isset($skill['probability'])) {
+                                                        $skillProb = intval($skill['probability']);
+                                                        echo ($skillProb / 10) . "%";
+                                                    } elseif (isset($skill['chance'])) {
+                                                        $skillProb = intval($skill['chance']);
+                                                        echo ($skillProb / 10) . "%";
+                                                    } else {
+                                                        echo "Unknown";
+                                                    }
+                                                    ?>
+                                                </td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="col-md-4">
+                        <!-- Box 1: Info -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Basic Info</h5>
                             </div>
                             <div class="card-body">
                                 <table class="table table-striped table-bordered">
                                     <tbody>
                                         <tr>
-                                            <th>ID</th>
-                                            <td><?php echo htmlspecialchars($monster['npcid']); ?></td>
+                                            <th>Name</th>
+                                            <td><?php echo htmlspecialchars($monster['desc_en']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Level</th>
+                                            <td><?php echo htmlspecialchars($monster['lvl']); ?></td>
                                         </tr>
                                         <tr>
                                             <th>HP</th>
@@ -82,6 +151,19 @@ if (isset($_GET['id'])) {
                                             <th>AC</th>
                                             <td><?php echo htmlspecialchars($monster['ac']); ?></td>
                                         </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Box 2: Stats -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Stats</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-striped table-bordered">
+                                    <tbody>
                                         <tr>
                                             <th>STR</th>
                                             <td><?php echo htmlspecialchars($monster['str']); ?></td>
@@ -106,20 +188,135 @@ if (isset($_GET['id'])) {
                                             <th>MR</th>
                                             <td><?php echo htmlspecialchars($monster['mr']); ?></td>
                                         </tr>
-                                        <tr>
-                                            <th>EXP</th>
-                                            <td><?php echo number_format($monster['exp']); ?></td>
-                                        </tr>
-                                        <?php if (!empty($monster['is_bossmonster']) && $monster['is_bossmonster'] == 1): ?>
-                                        <tr>
-                                            <th>Boss</th>
-                                            <td>
-                                                <span class="badge bg-danger">Yes</span>
-                                            </td>
-                                        </tr>
-                                        <?php endif; ?>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Box 3: Extra -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>Extra</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-striped table-bordered">
+                                    <tbody>
+                                        <tr>
+                                            <th>EXP Earn</th>
+                                            <td><?php echo number_format($monster['exp']); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Alignment</th>
+                                            <td><?php echo htmlspecialchars($monster['lawful'] ?? 'N/A'); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Walk Speed</th>
+                                            <td><?php echo htmlspecialchars($monster['passispeed'] ?? 'N/A'); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Swing Speed</th>
+                                            <td><?php echo htmlspecialchars($monster['atkspeed'] ?? 'N/A'); ?></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Cast Speed</th>
+                                            <td><?php echo htmlspecialchars($monster['atk_magic_speed'] ?? 'N/A'); ?></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Box 4: Details -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <h6 class="mb-2">Aggressive To</h6>
+                                <div class="row mb-3">
+                                    <div class="col-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" disabled 
+                                                <?php echo (!empty($monster['agro']) && $monster['agro'] == 1) ? 'checked' : ''; ?>>
+                                            <label class="form-check-label">Normal</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" disabled 
+                                                <?php echo (!empty($monster['is_agro_poly']) && $monster['is_agro_poly'] == 1) ? 'checked' : ''; ?>>
+                                            <label class="form-check-label">Polymorph</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" disabled 
+                                                <?php echo (!empty($monster['is_agro_invis']) && $monster['is_agro_invis'] == 1) ? 'checked' : ''; ?>>
+                                            <label class="form-check-label">Invisible</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <?php if (!empty($monster['family'])): ?>
+                                <div class="mb-3">
+                                    <strong>Family:</strong> <?php echo htmlspecialchars($monster['family']); ?>
+                                </div>
+                                <?php endif; ?>
+                                
+                                <?php if (!empty($monster['undead']) && $monster['undead'] != 'NONE'): ?>
+                                <div class="mb-3">
+                                    <strong>Type:</strong> <?php echo htmlspecialchars($monster['undead']); ?>
+                                </div>
+                                <?php endif; ?>
+                                
+                                <h6 class="mb-2">Abilities</h6>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" disabled 
+                                                <?php echo (!empty($monster['is_picupitem']) && $monster['is_picupitem'] == 1) ? 'checked' : ''; ?>>
+                                            <label class="form-check-label">Can Loot</label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" disabled 
+                                                <?php echo (!empty($monster['is_bravespeed']) && $monster['is_bravespeed'] == 1) ? 'checked' : ''; ?>>
+                                            <label class="form-check-label">Use Haste</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" disabled 
+                                                <?php echo (!empty($monster['is_teleport']) && $monster['is_teleport'] == 1) ? 'checked' : ''; ?>>
+                                            <label class="form-check-label">Teleport</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" disabled 
+                                                <?php echo (!empty($monster['is_hard']) && $monster['is_hard'] == 1) ? 'checked' : ''; ?>>
+                                            <label class="form-check-label">Hard</label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" disabled 
+                                                <?php echo (!empty($monster['is_bossmonster']) && $monster['is_bossmonster'] == 1) ? 'checked' : ''; ?>>
+                                            <label class="form-check-label">Boss</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" disabled 
+                                                <?php echo (!empty($monster['can_turnundead']) && $monster['can_turnundead'] == 1) ? 'checked' : ''; ?>>
+                                            <label class="form-check-label">Turn Undead</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <?php if (isAdminLoggedIn()): ?>
+                                <div class="alert alert-secondary mt-3 mb-0">
+                                    <strong>Admin Info:</strong><br>
+                                    <small>
+                                        NPC ID: <?php echo htmlspecialchars($monster['npcid']); ?><br>
+                                        Class ID: <?php echo htmlspecialchars($monster['classid'] ?? 'N/A'); ?><br>
+                                        Sprite ID: <?php echo htmlspecialchars($monster['spriteId']); ?>
+                                    </small>
+                                </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -192,6 +389,8 @@ if (isset($_GET['id'])) {
                                                             $itemUrl = "view_armor.php?id=" . $drop['itemId'];
                                                         } elseif ($drop['item_type'] == 'weapon') {
                                                             $itemUrl = "view_weapon.php?id=" . $drop['itemId'];
+                                                        } elseif ($drop['item_type'] == 'etcitem') {
+                                                            $itemUrl = "view_item.php?id=" . $drop['itemId'];
                                                         }
                                                         
                                                         if (!empty($itemUrl)): 
@@ -216,19 +415,23 @@ if (isset($_GET['id'])) {
                                                     </td>
                                                     <td class="text-center">
                                                         <?php 
-                                                        $chance = floatval($drop['chance']);
+                                                        // Fixed drop chance calculation
+                                                        $chanceValue = intval($drop['chance']);
+                                                        $dropPercentage = ($chanceValue / 1000000) * 100;
+                                                        
+                                                        // Determine badge class based on rarity
                                                         $badgeClass = 'bg-danger'; // Very low chance (red)
                                                         
-                                                        if ($chance >= 80) {
+                                                        if ($dropPercentage >= 8) {
                                                             $badgeClass = 'bg-success'; // High chance (green)
-                                                        } elseif ($chance >= 40) {
+                                                        } elseif ($dropPercentage >= 4) {
                                                             $badgeClass = 'bg-primary'; // Medium chance (blue)
-                                                        } elseif ($chance >= 10) {
+                                                        } elseif ($dropPercentage >= 1) {
                                                             $badgeClass = 'bg-warning text-dark'; // Low chance (yellow)
                                                         }
                                                         ?>
                                                         <span class="badge <?php echo $badgeClass; ?>">
-                                                            <?php echo htmlspecialchars($drop['chance']); ?>%
+                                                            <?php echo number_format($dropPercentage, 2); ?>%
                                                         </span>
                                                     </td>
                                                 </tr>
@@ -419,4 +622,15 @@ include 'footer.php';
 .map-card:hover .map-image {
     transform: scale(1.02);
 }
-</style>
+.form-check-input:checked {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+.form-check-input:disabled {
+    opacity: 1;
+    pointer-events: none;
+}
+.form-check-input:disabled:not(:checked) {
+    background-color: #444;
+    border-color: #555;
+}

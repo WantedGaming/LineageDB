@@ -143,7 +143,35 @@ if (isset($_GET['id'])) {
                         <div class="card mb-4">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h4 class="mb-0"><?php echo htmlspecialchars($displayName); ?></h4>
-                                <span class="badge bg-primary">Grade <?php echo htmlspecialchars($doll['grade']); ?></span>
+                                <?php
+                                // Set color for different grades
+                                $gradeColor = 'bg-primary';
+                                switch(intval($doll['grade'])) {
+                                    case 1:
+                                        $gradeColor = 'bg-secondary'; // Grey for common
+                                        break;
+                                    case 2:
+                                        $gradeColor = 'bg-info'; // Blue for uncommon
+                                        break;
+                                    case 3:
+                                        $gradeColor = 'bg-success'; // Green for rare
+                                        break;
+                                    case 4:
+                                        $gradeColor = 'bg-warning text-dark'; // Yellow for epic
+                                        break;
+                                    case 5:
+                                    case 6:
+                                        $gradeColor = 'bg-danger'; // Red for legendary
+                                        break;
+                                    case 7:
+                                    case 8:
+                                        $gradeColor = 'bg-dark border border-warning'; // Dark with gold border for mythic
+                                        break;
+                                    default:
+                                        $gradeColor = 'bg-primary'; // Default blue
+                                }
+                                ?>
+                                <span class="badge <?php echo $gradeColor; ?>">Grade <?php echo htmlspecialchars($doll['grade']); ?></span>
                             </div>
                             <div class="card-body text-center">
                                 <?php if ($hasIcon): ?>
@@ -343,7 +371,33 @@ if (isset($_GET['id'])) {
                                         // Show available enhancement grades with current one highlighted
                                         foreach ($enhancementGrades as $grade):
                                             $isCurrentGrade = isset($potential['grade']) && $potential['grade'] == $grade;
-                                            $gradeClass = $isCurrentGrade ? 'bg-primary' : 'bg-secondary';
+                                            
+                                            // Set color for different grades
+                                            $gradeClass = 'bg-primary';
+                                            switch(intval($grade)) {
+                                                case 1:
+                                                    $gradeClass = 'bg-secondary'; // Grey for common
+                                                    break;
+                                                case 2:
+                                                    $gradeClass = 'bg-info'; // Blue for uncommon
+                                                    break;
+                                                case 3:
+                                                    $gradeClass = 'bg-success'; // Green for rare
+                                                    break;
+                                                case 4:
+                                                    $gradeClass = 'bg-warning text-dark'; // Yellow for epic
+                                                    break;
+                                                case 5:
+                                                case 6:
+                                                    $gradeClass = 'bg-danger'; // Red for legendary
+                                                    break;
+                                                case 7:
+                                                case 8:
+                                                    $gradeClass = 'bg-dark border border-warning'; // Dark with gold border for mythic
+                                                    break;
+                                                default:
+                                                    $gradeClass = $isCurrentGrade ? 'bg-primary' : 'bg-secondary';
+                                            }
                                         ?>
                                         <span class="badge <?php echo $gradeClass; ?> p-2">
                                             <?php echo "Grade " . htmlspecialchars($grade); ?>
@@ -435,7 +489,80 @@ if (isset($_GET['id'])) {
                                 <?php endif; ?>
                             </div>
                         </div>
-                        
+                        <!-- Add this after the Enchantment Potential section -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-lightbulb me-2"></i>Usage Tips
+        </h5>
+    </div>
+    <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <?php
+            // Generate tips based on doll properties
+            $tips = [];
+            
+            // Haste tips
+            if ($doll['haste'] == 1) {
+                $tips[] = "This doll provides a Haste effect, making it excellent for combat-focused characters who need faster attack speed.";
+            }
+            
+            // Damage chance tips
+            if ($doll['damageChance'] > 0) {
+                $tips[] = "With a {$doll['damageChance']}% damage chance, this doll can significantly boost your damage output in prolonged battles.";
+            }
+            
+            // Bonus interval tips
+            if ($doll['bonusInterval'] > 0) {
+                $tips[] = "The bonus activates every {$doll['bonusInterval']} seconds. For maximum efficiency, summon this doll before engaging in longer battles.";
+            }
+            
+            // Speed effects tips
+            if (!empty($speedEffects)) {
+                $tips[] = "This doll provides speed enhancement effects, making it valuable for PvP situations and quick maneuvers.";
+            }
+            
+            // Elemental resistance tips
+            $hasElementalResist = false;
+            if (!empty($potentialStats)) {
+                foreach ($potentialStats as $statName => $statValue) {
+                    if (strpos($statName, 'Resist') !== false) {
+                        $hasElementalResist = true;
+                        break;
+                    }
+                }
+            }
+            
+            if ($hasElementalResist) {
+                $tips[] = "The elemental resistances provided by this doll make it particularly useful in areas with elemental damage.";
+            }
+            
+            // Grade-based tips
+            if (isset($doll['grade'])) {
+                if ($doll['grade'] >= 4) {
+                    $tips[] = "As a Grade {$doll['grade']} doll, this is one of the more powerful dolls available. Prioritize using this over lower-grade alternatives.";
+                } else {
+                    $tips[] = "While this is a Grade {$doll['grade']} doll, it can still be valuable until you obtain higher-grade dolls.";
+                }
+            }
+            
+            // Add generic tip if no specific tips were generated
+            if (empty($tips)) {
+                $tips[] = "Summon this doll to receive its passive bonuses while adventuring.";
+                $tips[] = "Magic dolls will remain active until you summon a different doll or log out.";
+            }
+            
+            // Output the tips
+            foreach ($tips as $tip):
+            ?>
+                <li class="list-group-item">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <?php echo $tip; ?>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+</div>
                         <?php 
                         // Fetch any special notes or lore based on available info
                         $notes = [];
@@ -458,6 +585,7 @@ if (isset($_GET['id'])) {
                         </div>
                         <?php endif; ?>
                     </div>
+
                 </div>
                 <?php
 // Fetch similar dolls with icon information
@@ -502,6 +630,33 @@ if (!empty($similarDolls)): ?>
                         }
                         
                         $hasIcon = file_exists($similarIconPath);
+                        
+                        // Set color for similar doll grade
+                        $similarGradeColor = 'bg-primary';
+                        switch(intval($similarDoll['grade'])) {
+                            case 1:
+                                $similarGradeColor = 'bg-secondary'; // Grey for common
+                                break;
+                            case 2:
+                                $similarGradeColor = 'bg-info'; // Blue for uncommon
+                                break;
+                            case 3:
+                                $similarGradeColor = 'bg-success'; // Green for rare
+                                break;
+                            case 4:
+                                $similarGradeColor = 'bg-warning text-dark'; // Yellow for epic
+                                break;
+                            case 5:
+                            case 6:
+                                $similarGradeColor = 'bg-danger'; // Red for legendary
+                                break;
+                            case 7:
+                            case 8:
+                                $similarGradeColor = 'bg-dark border border-warning'; // Dark with gold border for mythic
+                                break;
+                            default:
+                                $similarGradeColor = 'bg-primary'; // Default blue
+                        }
                     ?>
                     <div class="col-md-4 mb-3">
                         <a href="view_doll.php?id=<?php echo $similarDoll['npcid']; ?>" class="text-decoration-none">
@@ -517,7 +672,7 @@ if (!empty($similarDolls)): ?>
                                     
                                     <div class="d-flex justify-content-center align-items-center">
                                         <span class="text-primary me-2"><?php echo htmlspecialchars($similarDisplayName); ?></span>
-                                        <span class="badge bg-secondary">Grade <?php echo $similarDoll['grade']; ?></span>
+                                        <span class="badge <?php echo $similarGradeColor; ?>">Grade <?php echo $similarDoll['grade']; ?></span>
                                     </div>
                                 </div>
                             </div>
