@@ -163,8 +163,8 @@ $result = $stmt->get_result();
                         <select id="grade" name="grade" class="form-select">
                             <option value="">All Grades</option>
                             <?php 
-                            // Get unique grades
-                            $gradeQuery = "SELECT DISTINCT grade FROM magicdoll_info ORDER BY grade";
+                            // Get unique grades from magicdoll_info table
+                            $gradeQuery = "SELECT DISTINCT grade FROM magicdoll_info ORDER BY grade ASC";
                             $gradeResult = $conn->query($gradeQuery);
                             while ($gradeRow = $gradeResult->fetch_assoc()): ?>
                                 <option value="<?php echo $gradeRow['grade']; ?>"
